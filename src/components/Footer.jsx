@@ -36,7 +36,7 @@ const Footer = () => {
             <span className="font-semibold text-lg">Contacto</span>
             <div className="space-y-2 text-sm text-stone-200">
               <p>Salta, Argentina</p>
-              <p>+54 9 387 500-0000</p>
+              <p>+54 9 3874 83-3177</p>
               <p className="text-xs italic mt-4">Con amor desde el corazón de los valles</p>
             </div>
           </div>

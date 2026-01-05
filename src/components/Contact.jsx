@@ -43,7 +43,7 @@ const Contact = () => {
 
               <div className="flex items-center justify-center gap-2 text-stone-700">
                 <Phone className="text-amber-700" size={20} />
-                <span>+54 9 387 500-0000</span>
+                <span>+54 9 3874 83-3177</span>
               </div>
 
               <Button
