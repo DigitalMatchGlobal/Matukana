@@ -45,7 +45,7 @@ const AboutAgustin = () => {
           >
             <div className="aspect-square rounded-2xl overflow-hidden shadow-2xl">
               <img 
-                alt="Agustín en la naturaleza de Salta"
+                alt="Agustín en la naturaleza de Salta "
                 className="w-full h-full object-cover"
                src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/products/Logo_Matukana.png" />
             </div>
