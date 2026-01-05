@@ -11,7 +11,7 @@ const ExperienceCard = ({ experience }) => {
   const handleInterest = async () => {
     // 1. Open WhatsApp immediately
     const message = encodeURIComponent(`Hola! Me interesa participar en: ${experience.name} ${experience.date ? 'el ' + new Date(experience.date).toLocaleDateString() : ''}`);
-    window.open(`https://wa.me/5493875000000?text=${message}`, '_blank');
+    window.open(`https://wa.me/5493874833177?text=${message}`, '_blank');
     
     // 2. Save to Supabase in background
     try {

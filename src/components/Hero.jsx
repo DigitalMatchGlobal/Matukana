@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 const Hero = () => {
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent('Hola! Me gustaría conocer más sobre Matukana.');
-    window.open(`https://wa.me/5493875000000?text=${message}`, '_blank');
+    window.open(`https://wa.me/5493874833177?text=${message}`, '_blank');
   };
 
   return (

@@ -11,7 +11,7 @@ const ProductCard = ({ product }) => {
   const handleConsult = async () => {
     // 1. Open WhatsApp immediately
     const message = encodeURIComponent(`Hola! Me interesa el producto: ${product.name}`);
-    window.open(`https://wa.me/5493875000000?text=${message}`, '_blank');
+    window.open(`https://wa.me/5493874833177?text=${message}`, '_blank');
     
     // 2. Save to Supabase in background
     try {
