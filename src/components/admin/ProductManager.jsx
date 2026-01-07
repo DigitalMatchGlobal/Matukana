@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription, // <--- IMPORTANTE: Importado para corregir el warning
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -50,7 +51,7 @@ const ProductManager = () => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .order('created_at', { ascending: false }); // Ordenar por más recientes
+      .order('created_at', { ascending: false }); 
     
     if (error) {
       toast({ variant: "destructive", title: "Error", description: error.message });
@@ -250,6 +251,10 @@ const ProductManager = () => {
         <DialogContent className="sm:max-w-[500px] bg-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
+            {/* CORRECCIÓN: Se agrega Description para accesibilidad y evitar el warning */}
+            <DialogDescription>
+              Completa la información del producto y sube tus imágenes.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
@@ -264,13 +269,13 @@ const ProductManager = () => {
               />
             </div>
             
-            {/* Componente Uploader Ajustado */}
+            {/* Componente Uploader con la ruta correcta */}
             <div className="p-3 bg-stone-50 rounded-lg border border-stone-100">
                 <ImageUploader 
                 images={formData.images} 
                 onChange={(newImages) => setFormData({...formData, images: newImages})} 
                 maxImages={2}
-                bucketName="media" // Asegúrate de tener este bucket en Supabase
+                bucketName="media"
                 folderPath="products"
                 />
             </div>

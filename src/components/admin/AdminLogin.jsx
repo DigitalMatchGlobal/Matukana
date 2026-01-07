@@ -11,7 +11,8 @@ const AdminLogin = ({ onLogin }) => {
   const handleLogin = (e) => {
     e.preventDefault();
     
-    // Simple password check (in production, use proper authentication)
+    // NOTA: Esta validación es solo del lado del cliente.
+    // Para Supabase, sigues siendo un usuario 'anónimo'.
     if (password === 'matukana.2026') {
       onLogin();
       toast({
