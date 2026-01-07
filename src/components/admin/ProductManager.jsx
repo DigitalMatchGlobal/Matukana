@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Star, Save, X, FileImage as ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, Save, FileImage as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -51,7 +50,7 @@ const ProductManager = () => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .order('name');
+      .order('created_at', { ascending: false }); // Ordenar por más recientes
     
     if (error) {
       toast({ variant: "destructive", title: "Error", description: error.message });
@@ -78,7 +77,7 @@ const ProductManager = () => {
       setEditingProduct(product);
       setFormData({
         name: product.name,
-        description: product.description,
+        description: product.description || '',
         use_text: product.use_text || '',
         price: product.price,
         featured: product.featured || false,
@@ -91,6 +90,12 @@ const ProductManager = () => {
   };
 
   const handleSave = async () => {
+    // Validación básica
+    if (!formData.name || !formData.price) {
+        toast({ variant: "destructive", title: "Faltan datos", description: "El nombre y el precio son obligatorios." });
+        return;
+    }
+
     try {
       if (editingProduct) {
         const { error } = await supabase
@@ -113,7 +118,8 @@ const ProductManager = () => {
       fetchProducts();
       resetForm();
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      console.error(error);
+      toast({ variant: "destructive", title: "Error al guardar", description: error.message });
     }
   };
 
@@ -141,7 +147,7 @@ const ProductManager = () => {
         .eq('id', product.id);
         
       if (error) throw error;
-      fetchProducts(); // Refresh to show update
+      fetchProducts(); 
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     }
@@ -176,7 +182,7 @@ const ProductManager = () => {
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold text-lg text-amber-900 line-clamp-1">{product.name}</h3>
                 <button onClick={() => toggleFeatured(product)} title={product.featured ? "Quitar destacado" : "Destacar"}>
-                  <Star size={20} className={product.featured ? "text-amber-500 fill-amber-500" : "text-stone-300"} />
+                  <Star size={20} className={product.featured ? "text-amber-500 fill-amber-500" : "text-stone-300 hover:text-amber-400"} />
                 </button>
               </div>
 
@@ -185,27 +191,30 @@ const ProductManager = () => {
                 <div className="w-full h-32 mb-3 bg-stone-100 rounded-md overflow-hidden relative">
                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
                    {product.images.length > 1 && (
-                     <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                     <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                        +{product.images.length - 1}
                      </div>
                    )}
                 </div>
               ) : (
-                <div className="w-full h-24 mb-3 bg-stone-50 rounded-md flex items-center justify-center border border-dashed border-stone-200">
+                <div className="w-full h-32 mb-3 bg-stone-50 rounded-md flex items-center justify-center border border-dashed border-stone-200">
                   <ImageIcon className="text-stone-300" size={24} />
+                  <span className="text-xs text-stone-400 ml-2">Sin imagen</span>
                 </div>
               )}
               
               <div className="flex-1 space-y-2 mb-4">
-                <p className="text-sm text-stone-600 line-clamp-2">{product.description}</p>
-                <div className="text-xs bg-stone-100 p-2 rounded text-stone-700">
-                  <span className="font-semibold">Uso:</span> {product.use_text}
-                </div>
-                <div className="font-bold text-amber-800">{product.price}</div>
+                <p className="text-sm text-stone-600 line-clamp-2 min-h-[40px]">{product.description || "Sin descripción"}</p>
+                {product.use_text && (
+                    <div className="text-xs bg-stone-100 p-2 rounded text-stone-700 line-clamp-1">
+                        <span className="font-semibold">Uso:</span> {product.use_text}
+                    </div>
+                )}
+                <div className="font-bold text-amber-800 text-lg">{product.price}</div>
               </div>
 
-              <div className="flex gap-2 pt-2 border-t border-stone-100 mt-auto">
-                <Button variant="outline" size="sm" className="flex-1 text-stone-700" onClick={() => handleOpenDialog(product)}>
+              <div className="flex gap-2 pt-3 border-t border-stone-100 mt-auto">
+                <Button variant="outline" size="sm" className="flex-1 text-stone-700 hover:bg-stone-50" onClick={() => handleOpenDialog(product)}>
                   <Pencil size={14} className="mr-2" /> Editar
                 </Button>
                 
@@ -217,9 +226,9 @@ const ProductManager = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-white">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                      <AlertDialogTitle>¿Eliminar {product.name}?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Esta acción no se puede deshacer. El producto será eliminado permanentemente.
+                        Esta acción es irreversible.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -250,16 +259,21 @@ const ProductManager = () => {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all"
                 placeholder="Ej: Aceite de Lavanda"
               />
             </div>
             
-            <ImageUploader 
-              images={formData.images} 
-              onChange={(newImages) => setFormData({...formData, images: newImages})} 
-              maxImages={2}
-            />
+            {/* Componente Uploader Ajustado */}
+            <div className="p-3 bg-stone-50 rounded-lg border border-stone-100">
+                <ImageUploader 
+                images={formData.images} 
+                onChange={(newImages) => setFormData({...formData, images: newImages})} 
+                maxImages={2}
+                bucketName="media" // Asegúrate de tener este bucket en Supabase
+                folderPath="products"
+                />
+            </div>
 
             <div className="grid gap-2">
               <label htmlFor="price" className="text-sm font-medium text-stone-700">Precio</label>
@@ -278,7 +292,7 @@ const ProductManager = () => {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 resize-none"
                 placeholder="Descripción corta del producto"
               />
             </div>
@@ -294,22 +308,24 @@ const ProductManager = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 bg-amber-50 p-3 rounded-md border border-amber-100">
               <input
                 type="checkbox"
                 id="featured"
                 checked={formData.featured}
                 onChange={(e) => setFormData({...formData, featured: e.target.checked})}
-                className="h-4 w-4 rounded border-stone-300 text-amber-900 focus:ring-amber-500"
+                className="h-4 w-4 rounded border-amber-300 text-amber-900 focus:ring-amber-500 cursor-pointer"
               />
-              <label htmlFor="featured" className="text-sm font-medium text-stone-700">Destacar este producto</label>
+              <label htmlFor="featured" className="text-sm font-medium text-amber-900 cursor-pointer select-none">
+                  Destacar este producto en la portada
+              </label>
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleSave} className="bg-amber-900 hover:bg-amber-800 text-white">
-              <Save size={16} className="mr-2" /> Guardar
+              <Save size={16} className="mr-2" /> Guardar Producto
             </Button>
           </DialogFooter>
         </DialogContent>
