@@ -12,7 +12,7 @@ const AdminLogin = ({ onLogin }) => {
     e.preventDefault();
     
     // Simple password check (in production, use proper authentication)
-    if (password === 'matukana2026') {
+    if (password === 'matukana.2026') {
       onLogin();
       toast({
         title: "Bienvenido, Agustín",
@@ -73,9 +73,6 @@ const AdminLogin = ({ onLogin }) => {
             </button>
           </div>
 
-          <div className="text-xs text-stone-500 text-center pt-4 border-t border-stone-200">
-            Contraseña de prueba: matukana2026
-          </div>
         </form>
       </motion.div>
     </div>
