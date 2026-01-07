@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription, // Importado para corregir warning de accesibilidad
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -74,7 +75,7 @@ const TherapyManager = () => {
       setEditingTherapy(therapy);
       setFormData({
         name: therapy.name,
-        description: therapy.description,
+        description: therapy.description || '',
         duration: therapy.duration || '',
         benefits: therapy.benefits || '',
         images: therapy.images || []
@@ -86,25 +87,35 @@ const TherapyManager = () => {
   };
 
   const handleSave = async () => {
+    // Validación básica
+    if (!formData.name) {
+        toast({ variant: "destructive", title: "Faltan datos", description: "El nombre es obligatorio." });
+        return;
+    }
+
     try {
       if (editingTherapy) {
         const { error } = await supabase
           .from('therapies')
           .update(formData)
           .eq('id', editingTherapy.id);
+        
         if (error) throw error;
         toast({ title: "Terapia actualizada", description: "Cambios guardados." });
       } else {
         const { error } = await supabase
           .from('therapies')
           .insert([formData]);
+        
         if (error) throw error;
         toast({ title: "Terapia creada", description: "Nueva terapia añadida." });
       }
+      
       setIsDialogOpen(false);
       fetchTherapies();
       resetForm();
     } catch (error) {
+      console.error(error);
       toast({ variant: "destructive", title: "Error", description: error.message });
     }
   };
@@ -115,7 +126,9 @@ const TherapyManager = () => {
         .from('therapies')
         .delete()
         .eq('id', id);
+        
       if (error) throw error;
+      
       toast({ title: "Eliminado", description: "Terapia eliminada correctamente." });
       fetchTherapies();
     } catch (error) {
@@ -147,7 +160,7 @@ const TherapyManager = () => {
               key={therapy.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-white rounded-lg shadow border border-stone-200 p-4 flex flex-col h-full"
+              className="bg-white rounded-lg shadow border border-stone-200 p-4 flex flex-col h-full group"
             >
               <h3 className="font-bold text-lg text-amber-900 mb-2">{therapy.name}</h3>
 
@@ -156,29 +169,32 @@ const TherapyManager = () => {
                 <div className="w-full h-32 mb-3 bg-stone-100 rounded-md overflow-hidden relative">
                    <img src={therapy.images[0]} alt={therapy.name} className="w-full h-full object-cover" />
                    {therapy.images.length > 1 && (
-                     <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                     <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                        +{therapy.images.length - 1}
                      </div>
                    )}
                 </div>
               ) : (
-                <div className="w-full h-24 mb-3 bg-stone-50 rounded-md flex items-center justify-center border border-dashed border-stone-200">
+                <div className="w-full h-32 mb-3 bg-stone-50 rounded-md flex items-center justify-center border border-dashed border-stone-200">
                   <ImageIcon className="text-stone-300" size={24} />
+                  <span className="text-xs text-stone-400 ml-2">Sin imagen</span>
                 </div>
               )}
               
               <div className="flex-1 space-y-3 mb-4">
-                <p className="text-sm text-stone-600 line-clamp-3">{therapy.description}</p>
+                <p className="text-sm text-stone-600 line-clamp-3">{therapy.description || "Sin descripción"}</p>
                 <div className="flex items-center text-xs text-stone-500">
                   <Clock size={14} className="mr-1" /> {therapy.duration}
                 </div>
-                <div className="text-xs bg-amber-50 p-2 rounded text-stone-700 border border-amber-100">
-                  <span className="font-semibold text-amber-800">Beneficios:</span> {therapy.benefits}
-                </div>
+                {therapy.benefits && (
+                    <div className="text-xs bg-amber-50 p-2 rounded text-stone-700 border border-amber-100 line-clamp-2">
+                    <span className="font-semibold text-amber-800">Beneficios:</span> {therapy.benefits}
+                    </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-stone-100 mt-auto">
-                <Button variant="outline" size="sm" className="flex-1 text-stone-700" onClick={() => handleOpenDialog(therapy)}>
+                <Button variant="outline" size="sm" className="flex-1 text-stone-700 hover:bg-stone-50" onClick={() => handleOpenDialog(therapy)}>
                   <Pencil size={14} className="mr-2" /> Editar
                 </Button>
                 
@@ -207,10 +223,14 @@ const TherapyManager = () => {
         </div>
       )}
 
+      {/* Edit/Create Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px] bg-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTherapy ? 'Editar Terapia' : 'Nueva Terapia'}</DialogTitle>
+            <DialogDescription>
+                Completa la información de la terapia y sube una imagen representativa.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
@@ -220,15 +240,21 @@ const TherapyManager = () => {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all"
+                placeholder="Ej: Masaje Descontracturante"
               />
             </div>
             
-            <ImageUploader 
-              images={formData.images} 
-              onChange={(newImages) => setFormData({...formData, images: newImages})} 
-              maxImages={2}
-            />
+            {/* Componente Uploader Configurado para Terapias */}
+            <div className="p-3 bg-stone-50 rounded-lg border border-stone-100">
+                <ImageUploader 
+                images={formData.images} 
+                onChange={(newImages) => setFormData({...formData, images: newImages})} 
+                maxImages={2}
+                bucketName="media"
+                folderPath="therapies" // <--- Aquí está el cambio clave
+                />
+            </div>
 
             <div className="grid gap-2">
               <label htmlFor="duration" className="text-sm font-medium text-stone-700">Duración</label>
@@ -247,7 +273,7 @@ const TherapyManager = () => {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 resize-none"
               />
             </div>
 
