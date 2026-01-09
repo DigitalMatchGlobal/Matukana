@@ -20,15 +20,14 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    // 📍 AJUSTE: Agregamos 'relative' al contenedor principal
-    <div className="group h-[450px] perspective-1000 relative"> 
+    <div className="group h-[480px] perspective-1000 relative"> 
+      {/* Altura aumentada levemente a 480px para dar más aire al contenido */}
 
-      {/* 📍 AJUSTE CLAVE 1: El Badge "Destacado" se movió AQUÍ AFUERA.
-          Al estar fuera del motion.div que gira, permanecerá fijo y siempre legible.
-          Le pusimos z-20 para asegurar que flote sobre todo.
+      {/* 1. BADGE DESTACADO (FIJO A LA IZQUIERDA) 
+          Aseguramos left-4 para que esté bien pegado a la izquierda
       */}
       {product.featured && (
-        <div className="absolute top-4 left-4 z-20 bg-amber-400 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+        <div className="absolute top-4 left-4 z-20 bg-amber-400 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
           <Star size={10} fill="currentColor" /> Destacado
         </div>
       )}
@@ -44,23 +43,22 @@ const ProductCard = ({ product }) => {
         {/* ================= FRENTE ================= */}
         <div className="absolute inset-0 backface-hidden bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
           
-          {/* Botón Info: SOLO aparece si hay 'details' que mostrar */}
+          {/* 2. BOTÓN INFO (FIJO A LA DERECHA)
+             Aseguramos right-4. Al estar en extremos opuestos, ya no se solaparán.
+          */}
           {product.details && (
             <button 
                 onClick={() => setIsFlipped(true)}
-                /* 📍 AJUSTE CLAVE 2: Nuevo estilo para el botón 'i'.
-                   Usamos colores ámbar y un fondo más notorio para que no se pierda
-                   y equilibre visualmente al badge del otro lado.
-                */
                 className="absolute top-4 right-4 z-10 text-amber-900 bg-amber-100/80 hover:bg-amber-200 p-2 rounded-full shadow-sm transition-colors backdrop-blur-sm"
                 title="Ver más detalles y secretos"
             >
-                <Info size={18} strokeWidth={2.5} /> {/* Un poco más grueso el icono */}
+                <Info size={18} strokeWidth={2.5} />
             </button>
           )}
 
           {/* Imagen */}
-          <div className="w-full h-64 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative pt-12"> {/* Added pt-12 for spacing from badges */}
+          <div className="w-full h-60 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative pt-14"> 
+            {/* pt-14 asegura que la imagen no choque con los badges superiores */}
             {product.images && product.images.length > 0 ? (
               <img 
                 src={product.images[0]} 
@@ -78,16 +76,29 @@ const ProductCard = ({ product }) => {
             <h3 className="text-xl font-serif font-bold text-amber-900 leading-tight mb-2">
                 {product.name}
             </h3>
-            <p className="text-stone-500 text-sm line-clamp-2">
+            
+            {/* Descripción corta */}
+            <p className="text-stone-500 text-sm line-clamp-2 mb-3">
                 {product.description}
             </p>
+
+            {/* 3. RECUPERAMOS EL ESTILO "USO" CON HOJITA 🍃 */}
+            {product.use_text && (
+              <div className="mt-auto mb-4 flex items-start gap-2.5 p-3 bg-stone-50/80 rounded-lg border border-stone-100">
+                <Leaf size={16} className="text-green-600 mt-0.5 shrink-0 fill-green-50" />
+                <p className="text-xs text-stone-600 leading-snug">
+                  <span className="font-bold text-stone-700 block mb-0.5">Uso:</span>
+                  <span className="italic">{product.use_text}</span>
+                </p>
+              </div>
+            )}
             
-            <div className="flex items-center justify-between pt-4 border-t border-stone-100 mt-auto">
+            <div className="flex items-center justify-between pt-3 border-t border-stone-100 mt-auto">
               <div className="flex flex-col">
                  <span className="text-[10px] uppercase tracking-wider text-stone-400 font-medium">Precio</span>
                  <span className="text-xl font-bold text-amber-900">{product.price}</span>
               </div>
-              <Button onClick={handleConsult} size="sm" className="bg-green-600 hover:bg-green-700 text-white rounded-full px-5 shadow-lg shadow-green-100">
+              <Button onClick={handleConsult} size="sm" className="bg-green-600 hover:bg-green-700 text-white rounded-full px-5 shadow-lg shadow-green-100 transition-transform active:scale-95">
                 <MessageCircle size={16} className="mr-2" /> Consultar
               </Button>
             </div>
@@ -99,8 +110,6 @@ const ProductCard = ({ product }) => {
             className="absolute inset-0 backface-hidden bg-stone-100 rounded-2xl border border-stone-200 shadow-inner p-6 flex flex-col text-center"
             style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
         >
-            {/* 📍 NOTA: El badge de destacado ya NO se verá aquí al revés, 
-                pero sí se verá "flotando" encima correctamente. */}
             <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
                 <Leaf size={200} />
             </div>
@@ -112,7 +121,7 @@ const ProductCard = ({ product }) => {
                 <X size={20} />
             </button>
 
-            <div className="relative z-10 flex flex-col h-full justify-center pt-8"> {/* Added pt-8 to clear badge area */}
+            <div className="relative z-10 flex flex-col h-full justify-center pt-8">
                 <div className="mb-4">
                     <span className="inline-block p-2 bg-amber-200/50 rounded-full text-amber-800 mb-2">
                         <Sparkles size={20} />
@@ -125,15 +134,6 @@ const ProductCard = ({ product }) => {
                     <p className="text-stone-700 text-sm leading-relaxed whitespace-pre-wrap">
                         {product.details || "Información adicional no disponible."}
                     </p>
-
-                    {product.use_text && (
-                        <div className="mt-6 pt-4 border-t border-stone-200/50">
-                             <p className="text-xs uppercase tracking-widest text-stone-500 font-semibold mb-2 text-center">Modo de Uso</p>
-                             <p className="text-stone-600 text-xs text-center italic">
-                                {product.use_text}
-                             </p>
-                        </div>
-                    )}
                 </div>
 
                 <button 
