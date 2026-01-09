@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
+import { MapPin } from 'lucide-react'; // Icono de mapa para experiencias
 import ExperienceCard from '@/components/ExperienceCard';
 import { supabase } from '@/lib/customSupabaseClient';
 
@@ -16,10 +17,10 @@ const Experiences = () => {
       const { data, error } = await supabase
         .from('experiences')
         .select('*')
-        .order('date', { ascending: true }); // Closest dates first
+        .order('date', { ascending: true }); 
       
       if (!error && data) {
-        // Sort so that upcoming/defined dates are first, then undefined/null dates at the end
+        // Tu lógica de ordenamiento es perfecta, la mantenemos
         const sorted = data.sort((a, b) => {
            if (a.date && !b.date) return -1;
            if (!a.date && b.date) return 1;
@@ -39,43 +40,56 @@ const Experiences = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.15
       }
     }
   };
 
   return (
-    <section id="experiencias" className="py-20 px-4 bg-stone-50" ref={ref}>
-      <div className="container mx-auto max-w-6xl">
+    <section id="experiencias" className="py-24 px-4 bg-stone-50" ref={ref}>
+      <div className="container mx-auto max-w-7xl">
+        
+        {/* Encabezado Estilo Boutique */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4">Calendario de Experiencias</h2>
-          <p className="text-stone-700 max-w-2xl mx-auto">
-            Próximas fechas para vivir encuentros profundos con la naturaleza y la comunidad.
+          {/* Badge */}
+          <div className="inline-flex items-center justify-center p-2 bg-amber-100/50 text-amber-800 rounded-full mb-4">
+            <MapPin size={16} className="mr-2" />
+            <span className="text-xs font-bold uppercase tracking-widest">Comunidad & Naturaleza</span>
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-serif font-bold text-amber-900 mb-6">
+            Calendario de Experiencias
+          </h2>
+          <p className="text-stone-600 text-lg max-w-2xl mx-auto leading-relaxed">
+            Próximas fechas para vivir encuentros profundos, retiros y talleres en sintonía con los ciclos naturales.
           </p>
         </motion.div>
 
+        {/* Loading State */}
         {loading ? (
-          <div className="flex justify-center py-12">
+          <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-900"></div>
           </div>
         ) : (
+          /* Grid de Experiencias */
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-10"
           >
             {experiences.map((experience) => (
               <ExperienceCard key={experience.id} experience={experience} />
             ))}
+            
             {experiences.length === 0 && (
-               <div className="col-span-full text-center py-12 text-stone-500 italic">
-                 Pronto anunciaremos nuevas fechas y experiencias.
+               <div className="col-span-full text-center py-12 text-stone-500 italic bg-white rounded-xl border border-dashed border-stone-200">
+                 Pronto anunciaremos nuevas fechas y experiencias para esta temporada.
                </div>
             )}
           </motion.div>

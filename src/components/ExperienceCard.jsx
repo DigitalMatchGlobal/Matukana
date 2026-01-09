@@ -1,156 +1,211 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Calendar, Clock, User } from 'lucide-react';
+import { MessageCircle, Calendar, Clock, Info, X, Sparkles, RotateCw, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
 const ExperienceCard = ({ experience }) => {
   const { toast } = useToast();
+  const [isFlipped, setIsFlipped] = useState(false);
 
-  const handleInterest = async () => {
-    // 1. Open WhatsApp immediately
-    const message = encodeURIComponent(`Hola! Me interesa participar en: ${experience.name} ${experience.date ? 'el ' + new Date(experience.date).toLocaleDateString() : ''}`);
+  const handleInterest = async (e) => {
+    e.stopPropagation();
+    const dateStr = experience.date ? ` el ${new Date(experience.date).toLocaleDateString()}` : '';
+    const message = encodeURIComponent(`Hola! Me interesa participar en: ${experience.name}${dateStr}`);
     window.open(`https://wa.me/5493874833177?text=${message}`, '_blank');
     
-    // 2. Save to Supabase in background
+    // Guardar en Supabase
     try {
-      const { error } = await supabase
-        .from('inquiries')
-        .insert([
-          {
-            type: 'experience',
-            item_name: experience.name,
-            status: 'new'
-          }
-        ]);
-
-      if (error) {
-        console.error('Error saving inquiry:', error);
-      } else {
-         toast({
-          title: "Interés registrado",
-          description: "Hemos guardado tu interés en esta experiencia.",
-        });
-      }
-    } catch (err) {
-      console.error('Error in handleInterest:', err);
-    }
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
-
-  const getStatusBadge = () => {
-    if (experience.status === 'full') {
-      return <span className="absolute top-4 right-4 bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded shadow-sm z-10">CUPO COMPLETO</span>;
-    }
-    if (experience.status === 'upcoming') {
-      return <span className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded shadow-sm z-10">PRÓXIMA FECHA</span>;
-    }
-    if (experience.status === 'to_coordinate') {
-       return <span className="absolute top-4 right-4 bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded shadow-sm z-10">A COORDINAR</span>;
-    }
-    return null;
+        await supabase.from('inquiries').insert([{ type: 'experience', item_name: experience.name, status: 'new' }]);
+    } catch(err) { console.error(err); }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
     return date.toLocaleDateString('es-AR', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit'
+      weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
     });
   };
 
   const formattedDate = formatDate(experience.date);
 
-  return (
-    <motion.div
-      variants={cardVariants}
-      className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group relative flex flex-col h-full"
-    >
-      {/* Experience Image Section */}
-      <div className="w-full h-48 bg-stone-100 relative overflow-hidden">
-        {experience.images && experience.images.length > 0 ? (
-          <img 
-            src={experience.images[0]} 
-            alt={experience.name} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        ) : (
-           <div className="w-full h-full flex items-center justify-center bg-stone-50 text-stone-300">
-             <div className="w-12 h-12 rounded-full bg-stone-100" />
-           </div>
-        )}
-        {getStatusBadge()}
-      </div>
-
-      
-      <div className="p-6 space-y-4 flex-1 flex flex-col">
-        <div>
-          <h3 className="text-xl font-bold text-amber-900 mb-2">{experience.name}</h3>
-          <p className="text-stone-700 text-sm leading-relaxed mb-4 line-clamp-3">{experience.description}</p>
+  // Lógica para el Badge de Estado (Esquina Superior Izquierda)
+  const getStatusBadge = () => {
+    if (experience.status === 'full') {
+      return (
+        <div className="absolute top-4 left-4 z-20 bg-red-100 text-red-800 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+           <Users size={10} /> Cupo Completo
         </div>
+      );
+    }
+    if (experience.status === 'upcoming' && formattedDate) {
+      return (
+        <div className="absolute top-4 left-4 z-20 bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+           <Calendar size={10} /> Próxima Fecha
+        </div>
+      );
+    }
+    // Si no tiene fecha específica o es a coordinar
+    return (
+        <div className="absolute top-4 left-4 z-20 bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+           <Calendar size={10} /> A Coordinar
+        </div>
+    );
+  };
+
+  return (
+    <div className="group h-[550px] perspective-1000 relative">
+      
+      {getStatusBadge()}
+
+      <motion.div
+        initial={false}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        className="relative w-full h-full preserve-3d"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
         
-        <div className="space-y-3 mt-auto">
-          {formattedDate ? (
-            <div className="flex items-start text-sm text-stone-800 font-medium bg-amber-50 p-2 rounded-md">
-              <Calendar size={18} className="mr-2 text-amber-700 shrink-0 mt-0.5" />
-              <span className="capitalize">{formattedDate} hs</span>
-            </div>
-          ) : (
-            <div className="flex items-center text-sm text-stone-600">
-              <Calendar size={16} className="mr-2 text-amber-700" />
-              <span>{experience.availability || 'Fecha a coordinar'}</span>
-            </div>
-          )}
+        {/* ================= FRENTE ================= */}
+        <div className="absolute inset-0 backface-hidden bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
           
-          <div className="flex justify-between items-center text-sm text-stone-600 px-1">
-             <div className="flex items-center">
-              <Clock size={16} className="mr-2 text-stone-400" />
-              <span>{experience.duration}</span>
-            </div>
-            {experience.capacity && (
-               <div className="flex items-center">
-                <User size={16} className="mr-2 text-stone-400" />
-                <span>Cupo: {experience.capacity}</span>
-              </div>
+          {/* Botón Info Píldora */}
+          {(experience.includes || experience.description) && (
+            <button 
+                onClick={() => setIsFlipped(true)}
+                className="absolute top-4 right-4 z-10 bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Ver qué incluye"
+            >
+                <Info size={12} strokeWidth={2.5} /> Más info
+            </button>
+          )}
+
+          {/* Imagen */}
+          <div className="w-full h-60 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative pt-14"> 
+            {experience.images && experience.images.length > 0 ? (
+              <img 
+                src={experience.images[0]} 
+                alt={experience.name} 
+                className="h-full w-full object-cover rounded-lg shadow-sm transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : (
+               <div className="flex flex-col items-center justify-center text-stone-300">
+                  <div className="p-4 bg-white rounded-full shadow-sm">
+                    <MapPin size={32} className="text-amber-200" />
+                 </div>
+               </div>
             )}
           </div>
 
-          {experience.includes && (
-            <div className="text-xs text-stone-600 border-t border-stone-100 pt-3">
-              <span className="font-semibold text-stone-800">Incluye:</span> {experience.includes}
+          <div className="p-5 flex flex-col flex-1">
+            <h3 className="text-xl font-serif font-bold text-amber-900 leading-tight mb-2">
+                {experience.name}
+            </h3>
+            
+            <p className="text-stone-500 text-sm line-clamp-2 mb-4">
+                {experience.description}
+            </p>
+
+            {/* Fecha Destacada */}
+            <div className="bg-stone-50 rounded-lg p-3 border border-stone-100 mb-2">
+                {formattedDate ? (
+                    <div className="flex items-center gap-2 text-stone-700">
+                        <Calendar size={16} className="text-amber-600 shrink-0" />
+                        <span className="text-xs font-semibold capitalize">{formattedDate} hs</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 text-stone-500 italic">
+                        <Calendar size={16} className="text-stone-400 shrink-0" />
+                        <span className="text-xs">Fecha a coordinar con el grupo</span>
+                    </div>
+                )}
             </div>
-          )}
+
+            {/* Duración */}
+            {experience.duration && (
+                <div className="flex items-center gap-2 text-xs text-stone-500 ml-1">
+                    <Clock size={14} />
+                    <span>Duración: {experience.duration}</span>
+                </div>
+            )}
+            
+            {/* Footer Botón */}
+            <div className="pt-4 mt-auto">
+              <Button 
+                onClick={handleInterest} 
+                disabled={experience.status === 'full'}
+                className={`w-full rounded-full transition-transform active:scale-95 shadow-lg ${
+                    experience.status === 'full' 
+                    ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none' 
+                    : 'bg-amber-900 hover:bg-amber-800 text-white shadow-amber-100'
+                }`}
+              >
+                <MessageCircle size={16} className="mr-2" />
+                {experience.status === 'full' ? 'Cupo Completo' : 'Me Interesa'}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div className="p-6 pt-0 mt-auto">
-        <Button
-          onClick={handleInterest}
-          disabled={experience.status === 'full'}
-          className={`w-full rounded-full group-hover:scale-105 transition-transform duration-300 ${
-            experience.status === 'full' 
-              ? 'bg-stone-200 text-stone-500 cursor-not-allowed hover:bg-stone-200 hover:scale-100' 
-              : 'bg-amber-900 hover:bg-amber-800 text-white'
-          }`}
+
+        {/* ================= REVERSO (QUÉ INCLUYE) ================= */}
+        <div 
+            className="absolute inset-0 backface-hidden bg-stone-100 rounded-2xl border border-stone-200 shadow-inner p-6 flex flex-col text-center"
+            style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
         >
-          <MessageCircle size={18} className="mr-2" />
-          {experience.status === 'full' ? 'Cupo Completo' : 'Me Interesa'}
-        </Button>
-      </div>
-    </motion.div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+                <MapPin size={200} />
+            </div>
+
+            <button 
+                onClick={() => setIsFlipped(false)}
+                className="absolute top-4 right-4 p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-200/50 rounded-full transition-colors z-20"
+            >
+                <X size={20} />
+            </button>
+
+            <div className="relative z-10 flex flex-col h-full justify-center pt-8">
+                <div className="mb-4">
+                    <span className="inline-block p-2 bg-amber-200/50 rounded-full text-amber-800 mb-2">
+                        <Sparkles size={20} />
+                    </span>
+                    <h4 className="font-serif text-lg font-bold text-amber-900">La Experiencia Incluye</h4>
+                    <div className="h-0.5 w-12 bg-amber-300 mx-auto rounded-full mt-2"></div>
+                </div>
+
+                <div className="overflow-y-auto max-h-[260px] px-2 custom-scrollbar text-left">
+                    {experience.includes ? (
+                         <div className="bg-white/60 p-4 rounded-lg border border-stone-200/50">
+                            <p className="text-stone-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                {experience.includes}
+                            </p>
+                        </div>
+                    ) : (
+                        <p className="text-stone-500 text-sm italic text-center">
+                            Consulta por el programa completo de esta actividad.
+                        </p>
+                    )}
+                    
+                    {experience.capacity && (
+                        <p className="text-xs text-stone-500 mt-4 text-center">
+                            <Users size={12} className="inline mr-1" />
+                            Cupo máximo: {experience.capacity} personas
+                        </p>
+                    )}
+                </div>
+
+                <button 
+                    onClick={() => setIsFlipped(false)}
+                    className="mt-auto text-xs font-bold text-amber-900 flex items-center justify-center gap-1 hover:underline pt-4"
+                >
+                    <RotateCw size={12} /> Volver a la tarjeta
+                </button>
+            </div>
+        </div>
+
+      </motion.div>
+    </div>
   );
 };
 
