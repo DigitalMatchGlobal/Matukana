@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Save, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import ImageUploader from './ImageUploader'; // <--- IMPORTANTE: Importar el Uploader
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,7 @@ const GalleryManager = () => {
     title: '',
     description: '',
     category: 'products',
-    image_url: ''
+    image_url: '' // Mantenemos string porque la galería suele ser 1 foto por item
   });
 
   useEffect(() => {
@@ -73,7 +74,7 @@ const GalleryManager = () => {
   const handleSave = async () => {
     try {
       if (!formData.image_url) {
-        toast({ variant: "destructive", title: "Error", description: "La URL de la imagen es obligatoria." });
+        toast({ variant: "destructive", title: "Falta imagen", description: "Debes subir una imagen para la galería." });
         return;
       }
 
@@ -148,26 +149,28 @@ const GalleryManager = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-900"></div>
             </div>
           ) : (
-            <TabsContent value="all" className="mt-0">
-               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                 {images.map((img) => (
-                   <ImageCard key={img.id} img={img} onDelete={handleDelete} />
-                 ))}
-                 {images.length === 0 && <p className="text-stone-500 col-span-full text-center py-8">No hay imágenes en la galería.</p>}
-               </div>
-            </TabsContent>
-          )}
+            <>
+                <TabsContent value="all" className="mt-0">
+                   <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                     {images.map((img) => (
+                       <ImageCard key={img.id} img={img} onDelete={handleDelete} />
+                     ))}
+                     {images.length === 0 && <p className="text-stone-500 col-span-full text-center py-8">No hay imágenes en la galería.</p>}
+                   </div>
+                </TabsContent>
 
-          {categories.map(cat => (
-            <TabsContent key={cat.id} value={cat.id} className="mt-0">
-               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                 {filterImages(cat.id).map((img) => (
-                   <ImageCard key={img.id} img={img} onDelete={handleDelete} />
-                 ))}
-                 {filterImages(cat.id).length === 0 && <p className="text-stone-500 col-span-full text-center py-8">No hay imágenes en esta categoría.</p>}
-               </div>
-            </TabsContent>
-          ))}
+                {categories.map(cat => (
+                    <TabsContent key={cat.id} value={cat.id} className="mt-0">
+                       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                         {filterImages(cat.id).map((img) => (
+                           <ImageCard key={img.id} img={img} onDelete={handleDelete} />
+                         ))}
+                         {filterImages(cat.id).length === 0 && <p className="text-stone-500 col-span-full text-center py-8">No hay imágenes en esta categoría.</p>}
+                       </div>
+                    </TabsContent>
+                ))}
+            </>
+          )}
         </div>
       </Tabs>
 
@@ -203,17 +206,20 @@ const GalleryManager = () => {
               </select>
             </div>
 
-            <div className="grid gap-2">
-              <label htmlFor="image_url" className="text-sm font-medium text-stone-700">URL de Imagen</label>
-              <input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                placeholder="https://images.unsplash.com/..."
-              />
-              <p className="text-xs text-stone-500">Pega aquí el enlace directo a la imagen.</p>
+            {/* --- REEMPLAZO DEL INPUT DE URL POR IMAGE UPLOADER --- */}
+            <div className="p-3 bg-stone-50 rounded-lg border border-stone-100">
+                <label className="text-sm font-medium text-stone-700 mb-2 block">Imagen</label>
+                <ImageUploader 
+                    // Convertimos el string único a array para el componente
+                    images={formData.image_url ? [formData.image_url] : []} 
+                    // Al cambiar, tomamos el primer elemento del array y lo guardamos como string
+                    onChange={(newImages) => setFormData({...formData, image_url: newImages[0] || ''})} 
+                    maxImages={1}
+                    bucketName="media"
+                    folderPath="gallery" // Carpeta específica para galería
+                />
             </div>
+            {/* ----------------------------------------------------- */}
 
             <div className="grid gap-2">
               <label htmlFor="description" className="text-sm font-medium text-stone-700">Descripción (Opcional)</label>
@@ -221,7 +227,7 @@ const GalleryManager = () => {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 resize-none"
                 placeholder="Breve descripción del momento..."
               />
             </div>
