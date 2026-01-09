@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, Instagram, Facebook, Zap } from 'lucide-react'; // Quitamos Sprout, agregamos Zap (opcional para tech vibe)
+import { ArrowUp, Instagram, Facebook, Zap } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 
 const Footer = () => {
@@ -92,23 +92,26 @@ const Footer = () => {
               © {new Date().getFullYear()} Matukana. Todos los derechos reservados.
             </p>
             
-            {/* --- FIRMA DIGITAL MATCH GLOBAL (EFECTO WOW) --- */}
+            {/* --- FIRMA DIGITAL MATCH GLOBAL (BRANDING AZUL/VIOLETA) --- */}
             <a 
               href="https://www.digitalmatchglobal.com/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-950 border border-stone-800 hover:border-amber-500/50 transition-all duration-500 overflow-hidden"
+              // Borde hover cambia a Azul Eléctrico (#2563EB)
+              className="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-950 border border-stone-800 hover:border-[#2563EB]/50 transition-all duration-500 overflow-hidden"
             >
-                {/* Glow de fondo al hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-900/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                {/* Glow de fondo: Azul Eléctrico al pasar el mouse */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#2563EB]/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                 
                 <span className="text-[10px] text-stone-500 uppercase tracking-wider font-medium group-hover:text-stone-400 transition-colors">Made by</span>
                 
-                <span className="text-xs font-bold bg-gradient-to-r from-stone-200 via-white to-stone-200 bg-clip-text text-transparent group-hover:from-amber-200 group-hover:via-yellow-400 group-hover:to-amber-200 transition-all duration-300">
+                {/* GRADIENTE DE MARCA: #2563EB (Azul) a #6D5DFE (Violeta) */}
+                <span className="text-xs font-bold bg-gradient-to-r from-[#2563EB] to-[#6D5DFE] bg-clip-text text-transparent transition-all duration-300 group-hover:brightness-125">
                     DigitalMatchGlobal
                 </span>
                 
-                <Zap size={10} className="text-stone-600 group-hover:text-yellow-400 group-hover:fill-yellow-400 transition-all duration-300" />
+                {/* Rayo: Se prende en Violeta Tech (#6D5DFE) */}
+                <Zap size={10} className="text-stone-600 group-hover:text-[#6D5DFE] group-hover:fill-[#6D5DFE] transition-all duration-300" />
             </a>
           </div>
           
