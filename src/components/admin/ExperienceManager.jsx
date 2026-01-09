@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Save, Calendar, Clock, User, FileImage as ImageIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Pencil, Trash2, Save, Search, Calendar, Clock, User, Sparkles, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -26,7 +27,9 @@ import {
 
 const ExperienceManager = () => {
   const [experiences, setExperiences] = useState([]);
+  const [filteredExperiences, setFilteredExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExperience, setEditingExperience] = useState(null);
   const { toast } = useToast();
@@ -34,7 +37,7 @@ const ExperienceManager = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    availability: '', // Legacy field kept for flexibility
+    availability: '',
     duration: '',
     includes: '',
     date: '',
@@ -47,17 +50,39 @@ const ExperienceManager = () => {
     fetchExperiences();
   }, []);
 
+  // Buscador en tiempo real
+  useEffect(() => {
+    if (searchTerm === '') {
+        setFilteredExperiences(experiences);
+    } else {
+        const lowerTerm = searchTerm.toLowerCase();
+        const filtered = experiences.filter(e => 
+            e.name.toLowerCase().includes(lowerTerm) || 
+            (e.description && e.description.toLowerCase().includes(lowerTerm))
+        );
+        setFilteredExperiences(filtered);
+    }
+  }, [searchTerm, experiences]);
+
   const fetchExperiences = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('experiences')
       .select('*')
-      .order('date', { ascending: true }); // Order by date now
+      .order('date', { ascending: true });
     
     if (error) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     } else {
-      setExperiences(data);
+      // Orden personalizado: Fechas futuras primero, luego sin fecha
+      const sorted = (data || []).sort((a, b) => {
+           if (a.date && !b.date) return -1;
+           if (!a.date && b.date) return 1;
+           if (a.date && b.date) return new Date(a.date) - new Date(b.date);
+           return 0;
+      });
+      setExperiences(sorted);
+      setFilteredExperiences(sorted);
     }
     setLoading(false);
   };
@@ -80,7 +105,6 @@ const ExperienceManager = () => {
   const handleOpenDialog = (exp = null) => {
     if (exp) {
       setEditingExperience(exp);
-      // Format date for input datetime-local if exists
       let dateStr = '';
       if (exp.date) {
         const d = new Date(exp.date);
@@ -90,7 +114,7 @@ const ExperienceManager = () => {
 
       setFormData({
         name: exp.name,
-        description: exp.description,
+        description: exp.description || '',
         availability: exp.availability || '',
         duration: exp.duration || '',
         includes: exp.includes || '',
@@ -106,10 +130,14 @@ const ExperienceManager = () => {
   };
 
   const handleSave = async () => {
+    if (!formData.name) {
+        toast({ variant: "destructive", title: "Faltan datos", description: "El nombre es obligatorio." });
+        return;
+    }
+
     try {
       const payload = {
         ...formData,
-        // Convert empty string to null for date/capacity
         date: formData.date ? new Date(formData.date).toISOString() : null,
         capacity: formData.capacity ? parseInt(formData.capacity) : null
       };
@@ -151,170 +179,110 @@ const ExperienceManager = () => {
     }
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'upcoming': return 'Próxima';
-      case 'full': return 'Completa';
-      case 'to_coordinate': return 'A Coordinar';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status) => {
-     switch (status) {
-      case 'upcoming': return 'bg-green-100 text-green-800 border-green-200';
-      case 'full': return 'bg-red-100 text-red-800 border-red-200';
-      case 'to_coordinate': return 'bg-amber-100 text-amber-800 border-amber-200';
-      default: return 'bg-stone-100 text-stone-800 border-stone-200';
-    }
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return 'Fecha sin definir';
-    return new Date(dateStr).toLocaleDateString('es-AR', {
-      weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-    });
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8">
+      
+      {/* --- HEADER & TOOLBAR --- */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-stone-100 sticky top-20 z-10">
         <div>
-          <h2 className="text-xl font-bold text-amber-900">Gestión de Experiencias</h2>
-          <p className="text-sm text-stone-600">Calendario y actividades en la naturaleza</p>
+          <h2 className="text-xl font-bold text-stone-800 flex items-center gap-2">
+            <MapPin className="text-amber-600" size={24} />
+            Experiencias
+          </h2>
+          <p className="text-sm text-stone-500 hidden sm:block">Calendario y actividades</p>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="bg-amber-900 hover:bg-amber-800 text-white">
-          <Plus size={18} className="mr-2" />
-          Nueva Experiencia
-        </Button>
+
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
+                <input 
+                    type="text" 
+                    placeholder="Buscar..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                />
+            </div>
+
+            <Button onClick={() => handleOpenDialog()} className="bg-stone-900 hover:bg-stone-800 text-white shadow-lg shadow-stone-900/20">
+                <Plus size={18} className="mr-2" />
+                Nueva
+            </Button>
+        </div>
       </div>
 
+      {/* --- GRID DE EXPERIENCIAS --- */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-900"></div>
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-900"></div>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {experiences.map((exp) => (
-            <motion.div
-              key={exp.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="bg-white rounded-lg shadow border border-stone-200 p-4 flex flex-col h-full"
-            >
-              <div className="flex justify-between items-start mb-2">
-                 <h3 className="font-bold text-lg text-amber-900">{exp.name}</h3>
-                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${getStatusColor(exp.status)}`}>
-                   {getStatusLabel(exp.status)}
-                 </span>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <AnimatePresence>
+            {filteredExperiences.map((exp) => (
+              <ExperienceCard 
+                key={exp.id} 
+                experience={exp} 
+                onEdit={handleOpenDialog} 
+                onDelete={handleDelete} 
+              />
+            ))}
+          </AnimatePresence>
+          
+          {filteredExperiences.length === 0 && (
+              <div className="col-span-full py-20 text-center text-stone-400">
+                  <Calendar className="mx-auto mb-2 opacity-50" size={40} />
+                  <p>No se encontraron experiencias.</p>
               </div>
-
-              {/* Thumbnail preview */}
-              {exp.images && exp.images.length > 0 ? (
-                <div className="w-full h-32 mb-3 bg-stone-100 rounded-md overflow-hidden relative">
-                   <img src={exp.images[0]} alt={exp.name} className="w-full h-full object-cover" />
-                   {exp.images.length > 1 && (
-                     <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                       +{exp.images.length - 1}
-                     </div>
-                   )}
-                </div>
-              ) : (
-                <div className="w-full h-24 mb-3 bg-stone-50 rounded-md flex items-center justify-center border border-dashed border-stone-200">
-                  <ImageIcon className="text-stone-300" size={24} />
-                </div>
-              )}
-              
-              <div className="flex-1 space-y-3 mb-4">
-                <p className="text-sm text-stone-600 line-clamp-3">{exp.description}</p>
-                
-                <div className="space-y-1 text-xs text-stone-600 bg-stone-50 p-2 rounded">
-                   {exp.date ? (
-                      <div className="flex items-center font-medium text-amber-900">
-                        <Calendar size={14} className="mr-2" />
-                        {formatDate(exp.date)}
-                      </div>
-                   ) : (
-                      <div className="flex items-center text-stone-500">
-                        <Calendar size={14} className="mr-2" />
-                        {exp.availability || 'A coordinar'}
-                      </div>
-                   )}
-                  
-                  <div className="flex items-center">
-                    <Clock size={14} className="mr-2" />
-                    {exp.duration}
-                  </div>
-                  {exp.capacity && (
-                    <div className="flex items-center">
-                       <User size={14} className="mr-2" />
-                       Cupo: {exp.capacity} personas
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2 border-t border-stone-100 mt-auto">
-                <Button variant="outline" size="sm" className="flex-1 text-stone-700" onClick={() => handleOpenDialog(exp)}>
-                  <Pencil size={14} className="mr-2" /> Editar
-                </Button>
-                
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-1 text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50">
-                      <Trash2 size={14} className="mr-2" /> Borrar
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-white">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar experiencia?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta acción es permanente.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(exp.id)} className="bg-red-600 hover:bg-red-700 text-white">
-                        Eliminar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </motion.div>
-          ))}
+          )}
         </div>
       )}
 
+      {/* --- MODAL --- */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px] bg-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingExperience ? 'Editar Experiencia' : 'Nueva Experiencia'}</DialogTitle>
+            <DialogTitle className="text-2xl font-serif text-amber-900">
+                {editingExperience ? 'Editar Experiencia' : 'Nueva Experiencia'}
+            </DialogTitle>
+            <DialogDescription>
+                Planifica tu próxima aventura en la naturaleza.
+            </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
+            
             <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium text-stone-700">Nombre</label>
+              <label htmlFor="name" className="text-xs font-bold text-stone-500 uppercase tracking-wider">Nombre</label>
               <input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                placeholder="Ej: Caminata Medicinal"
               />
             </div>
             
-            <ImageUploader 
-              images={formData.images} 
-              onChange={(newImages) => setFormData({...formData, images: newImages})} 
-              maxImages={2}
-            />
+            <div className="space-y-2">
+                <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Imagen de Portada</label>
+                <div className="p-4 bg-stone-50 border border-dashed border-stone-200 rounded-xl">
+                    <ImageUploader 
+                        images={formData.images} 
+                        onChange={(newImages) => setFormData({...formData, images: newImages})} 
+                        maxImages={2}
+                        bucketName="media"
+                        folderPath="experiences"
+                    />
+                </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <label htmlFor="status" className="text-sm font-medium text-stone-700">Estado</label>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Estado</label>
                 <select
-                  id="status"
                   value={formData.status}
                   onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  className="w-full p-2.5 bg-white border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                 >
                   <option value="to_coordinate">A Coordinar</option>
                   <option value="upcoming">Próxima Fecha</option>
@@ -322,83 +290,207 @@ const ExperienceManager = () => {
                 </select>
               </div>
               
-              <div className="grid gap-2">
-                <label htmlFor="date" className="text-sm font-medium text-stone-700">Fecha y Hora</label>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Fecha y Hora</label>
                 <input
                   type="datetime-local"
-                  id="date"
                   value={formData.date}
                   onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  className="w-full p-2.5 bg-white border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <div className="grid gap-2">
-                <label htmlFor="capacity" className="text-sm font-medium text-stone-700">Cupo (Personas)</label>
+               <div className="space-y-2">
+                <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Cupo (Personas)</label>
                 <input
                   type="number"
-                  id="capacity"
                   value={formData.capacity}
                   onChange={(e) => setFormData({...formData, capacity: e.target.value})}
-                  className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                 />
               </div>
-              <div className="grid gap-2">
-                <label htmlFor="duration" className="text-sm font-medium text-stone-700">Duración</label>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Duración</label>
                 <input
-                  id="duration"
                   value={formData.duration}
                   onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                  className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                   placeholder="Ej: 3 horas"
                 />
               </div>
             </div>
             
-            <div className="grid gap-2">
-              <label htmlFor="availability" className="text-sm font-medium text-stone-700">Texto de Disponibilidad (Opcional)</label>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Disponibilidad (Texto)</label>
               <input
-                id="availability"
                 value={formData.availability}
                 onChange={(e) => setFormData({...formData, availability: e.target.value})}
-                className="flex h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                placeholder="Ej: Fines de semana / A pedido"
+                className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                placeholder="Ej: Fines de semana / A pedido (Si no hay fecha fija)"
               />
             </div>
 
-            <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium text-stone-700">Descripción</label>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider">Descripción</label>
               <textarea
-                id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="w-full p-3 bg-stone-50 border border-stone-200 rounded-lg text-sm min-h-[80px] focus:ring-2 focus:ring-amber-500 outline-none transition-all resize-none"
               />
             </div>
 
-            <div className="grid gap-2">
-              <label htmlFor="includes" className="text-sm font-medium text-stone-700">Qué incluye</label>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center gap-2">
+                 <Sparkles size={14} className="text-amber-500" /> Qué incluye
+              </label>
               <textarea
-                id="includes"
                 value={formData.includes}
                 onChange={(e) => setFormData({...formData, includes: e.target.value})}
-                className="flex min-h-[60px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                className="w-full p-3 bg-amber-50/50 border border-amber-100 rounded-lg text-sm min-h-[60px] focus:ring-2 focus:ring-amber-500 outline-none transition-all resize-none"
                 placeholder="Materiales, refrigerio, guía, etc."
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} className="bg-amber-900 hover:bg-amber-800 text-white">
-              <Save size={16} className="mr-2" /> Guardar
+            <Button onClick={handleSave} className="bg-amber-900 hover:bg-amber-800 text-white shadow-md">
+              <Save size={16} className="mr-2" /> Guardar Experiencia
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+// --- TARJETA DE EXPERIENCIA PREMIUM ---
+const ExperienceCard = ({ experience, onEdit, onDelete }) => {
+  
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'upcoming': return { label: 'Próxima', color: 'bg-emerald-500', text: 'text-white' };
+      case 'full': return { label: 'Completa', color: 'bg-red-500', text: 'text-white' };
+      default: return { label: 'A Coordinar', color: 'bg-amber-400', text: 'text-white' };
+    }
+  };
+
+  const statusConfig = getStatusConfig(experience.status);
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    return {
+        day: date.getDate(),
+        month: date.toLocaleDateString('es-AR', { month: 'short' }).toUpperCase()
+    };
+  };
+
+  const dateObj = formatDate(experience.date);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 overflow-hidden flex flex-col h-full"
+    >
+      {/* IMAGEN HERO */}
+      <div className="relative aspect-video overflow-hidden bg-stone-100 cursor-pointer" onClick={() => onEdit(experience)}>
+        {experience.images && experience.images.length > 0 ? (
+            <img 
+                src={experience.images[0]} 
+                alt={experience.name} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
+        ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-stone-300">
+                <MapPin size={48} strokeWidth={1} />
+                <span className="text-xs mt-2">Sin imagen</span>
+            </div>
+        )}
+
+        {/* Badge Estado */}
+        <div className={`absolute top-3 right-3 ${statusConfig.color} ${statusConfig.text} px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm`}>
+            {statusConfig.label}
+        </div>
+
+        {/* Calendario Flotante (Si tiene fecha) */}
+        {dateObj && (
+            <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md rounded-lg shadow-lg p-1.5 text-center min-w-[50px]">
+                <div className="text-[10px] font-bold text-stone-500 uppercase">{dateObj.month}</div>
+                <div className="text-xl font-bold text-stone-900 leading-none">{dateObj.day}</div>
+            </div>
+        )}
+
+        {/* Overlay Acciones */}
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[1px]">
+            <Button onClick={(e) => { e.stopPropagation(); onEdit(experience); }} className="bg-white text-stone-900 hover:bg-amber-50 rounded-full h-10 w-10 p-0 shadow-lg border-none">
+                <Pencil size={18} />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button onClick={(e) => e.stopPropagation()} className="bg-white text-red-600 hover:bg-red-50 rounded-full h-10 w-10 p-0 shadow-lg border-none">
+                  <Trash2 size={18} />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white">
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(experience.id)} className="bg-red-600 text-white">Eliminar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        </div>
+      </div>
+
+      {/* CONTENIDO */}
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="font-serif font-bold text-lg text-stone-800 leading-tight mb-2 cursor-pointer group-hover:text-amber-700 transition-colors" onClick={() => onEdit(experience)}>
+            {experience.name}
+        </h3>
+        
+        <p className="text-sm text-stone-500 line-clamp-2 mb-4 flex-1">
+            {experience.description || <span className="italic opacity-50">Sin descripción</span>}
+        </p>
+
+        <div className="flex items-center gap-4 text-xs text-stone-500 border-t border-stone-100 pt-3 mt-auto">
+            {experience.duration && (
+                <div className="flex items-center gap-1">
+                    <Clock size={12} className="text-amber-500" /> {experience.duration}
+                </div>
+            )}
+            {experience.capacity && (
+                <div className="flex items-center gap-1">
+                    <User size={12} className="text-amber-500" /> Cupo: {experience.capacity}
+                </div>
+            )}
+        </div>
+      </div>
+
+      {/* Barra de Acciones Móvil */}
+      <div className="md:hidden flex border-t border-stone-100 divide-x divide-stone-100">
+        <button onClick={() => onEdit(experience)} className="flex-1 py-3 text-sm font-medium text-stone-600 hover:bg-stone-50 flex items-center justify-center gap-2">
+            <Pencil size={14} /> Editar
+        </button>
+        <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <button className="flex-1 py-3 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center justify-center gap-2">
+                    <Trash2 size={14} /> Borrar
+                </button>
+            </AlertDialogTrigger>
+             <AlertDialogContent className="bg-white">
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(experience.id)} className="bg-red-600 text-white">Eliminar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </motion.div>
   );
 };
 
