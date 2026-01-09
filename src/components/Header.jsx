@@ -109,7 +109,9 @@ const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden overflow-hidden bg-white/50 backdrop-blur-xl border-t border-stone-100/50 mt-2 rounded-b-2xl shadow-xl"
+              // 🚀 AQUÍ ESTÁ LA CLAVE DE LA VELOCIDAD:
+              transition={{ duration: 0.2, ease: "easeInOut" }} 
+              className="md:hidden overflow-hidden bg-white/90 backdrop-blur-xl border-t border-stone-100/50 mt-2 rounded-b-2xl shadow-xl"
             >
               <div className="flex flex-col p-4 space-y-2">
                 {navLinks.map((link) => (
