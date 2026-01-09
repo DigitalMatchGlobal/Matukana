@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Save, Pencil } from 'lucide-react'; // Agregamos Pencil
+import { Plus, Trash2, Save, Pencil } from 'lucide-react'; // Added Pencil icon
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
@@ -29,7 +29,7 @@ const GalleryManager = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingImage, setEditingImage] = useState(null); // Nuevo estado para edición
+  const [editingImage, setEditingImage] = useState(null); // State for editing mode
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -65,10 +65,10 @@ const GalleryManager = () => {
       category: 'products',
       image_url: ''
     });
-    setEditingImage(null); // Limpiamos el estado de edición
+    setEditingImage(null); // Clear editing state
   };
 
-  // Modificamos para aceptar una imagen opcional
+  // Modified to handle opening dialog for both creating and editing
   const handleOpenDialog = (image = null) => {
     if (image) {
         setEditingImage(image);
@@ -94,14 +94,14 @@ const GalleryManager = () => {
       let error;
 
       if (editingImage) {
-        // --- MODO EDICIÓN (UPDATE) ---
+        // --- EDIT MODE (UPDATE) ---
         const { error: updateError } = await supabase
             .from('gallery')
             .update(formData)
-            .eq('id', editingImage.id); // Buscamos por ID
+            .eq('id', editingImage.id);
         error = updateError;
       } else {
-        // --- MODO CREACIÓN (INSERT) ---
+        // --- CREATE MODE (INSERT) ---
         const { error: insertError } = await supabase
             .from('gallery')
             .insert([formData]);
@@ -239,7 +239,9 @@ const GalleryManager = () => {
             <div className="p-3 bg-stone-50 rounded-lg border border-stone-100">
                 <label className="text-sm font-medium text-stone-700 mb-2 block">Imagen</label>
                 <ImageUploader 
+                    // Convert single string URL to array for the uploader component
                     images={formData.image_url ? [formData.image_url] : []} 
+                    // On change, take the first element of the array and save as string
                     onChange={(newImages) => setFormData({...formData, image_url: newImages[0] || ''})} 
                     maxImages={1}
                     bucketName="media"
@@ -281,10 +283,10 @@ const ImageCard = ({ img, onEdit, onDelete }) => {
       <div className="aspect-square bg-stone-100 relative overflow-hidden">
         <img src={img.image_url} alt={img.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
         
-        {/* Overlay con botones de acción */}
+        {/* Overlay with action buttons */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
             
-            {/* Botón Editar */}
+            {/* Edit Button */}
             <Button 
                 onClick={() => onEdit(img)} 
                 variant="secondary" 
@@ -294,7 +296,7 @@ const ImageCard = ({ img, onEdit, onDelete }) => {
                 <Pencil size={18} />
             </Button>
 
-            {/* Botón Eliminar */}
+            {/* Delete Button */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="icon" className="rounded-full">
