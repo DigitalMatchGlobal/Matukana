@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -12,12 +12,13 @@ import Footer from '@/components/Footer';
 import AdminLogin from '@/components/admin/AdminLogin';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { Toaster } from '@/components/ui/toaster';
+import CustomCursor from '@/components/ui/CustomCursor'; // 1. Importamos el Cursor Spirit
 
 function App() {
   const [isAdminRoute, setIsAdminRoute] = useState(window.location.hash === '#admin');
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleHashChange = () => {
       setIsAdminRoute(window.location.hash === '#admin');
     };
@@ -25,19 +26,36 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // --- LÓGICA DE ADMIN ---
   if (isAdminRoute) {
-    if (!isAdminLoggedIn) {
-      return <AdminLogin onLogin={() => setIsAdminLoggedIn(true)} />;
-    }
-    return <AdminDashboard onLogout={() => setIsAdminLoggedIn(false)} />;
+    return (
+      <>
+        {/* Agregamos el ruido también en Admin para mantener la identidad visual */}
+        <div className="noise-overlay"></div>
+        {/* Nota: No ponemos el CustomCursor aquí para mantener la precisión del puntero en la gestión de datos */}
+        
+        {!isAdminLoggedIn ? (
+          <AdminLogin onLogin={() => setIsAdminLoggedIn(true)} />
+        ) : (
+          <AdminDashboard onLogout={() => setIsAdminLoggedIn(false)} />
+        )}
+        <Toaster />
+      </>
+    );
   }
 
+  // --- SITIO PÚBLICO (EXPERIENCIA) ---
   return (
     <>
       <Helmet>
         <title>Matukana - Medicina Natural, Terapias y Experiencias en la Naturaleza</title>
         <meta name="description" content="Descubre Matukana: medicina natural, terapias corporales y experiencias conscientes en Salta, Argentina. Aceites, ungüentos, masajes y conexión auténtica con la naturaleza." />
       </Helmet>
+      
+      {/* 2. Efectos Visuales Globales */}
+      <CustomCursor /> 
+      <div className="noise-overlay"></div>
+
       <div className="min-h-screen bg-stone-50">
         <Header />
         <main>
