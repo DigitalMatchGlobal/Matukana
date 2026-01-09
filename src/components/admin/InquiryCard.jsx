@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Package, Heart, Sparkles, Clock, CheckCircle, MessageCircle, 
-  ArchiveRestore, AlertCircle, Copy, Hash, MoreHorizontal 
+  ArchiveRestore, AlertCircle, Copy, Hash 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useToast } from '@/components/ui/use-toast';
 
 // Función para fechas relativas
@@ -103,19 +97,16 @@ const InquiryCard = ({ inquiry, onStatusChange }) => {
                 {timeAgo(inquiry.created_at)}
             </div>
             
-            {/* Menú de Opciones Extra */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-stone-400 hover:text-stone-600">
-                  <MoreHorizontal size={14} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem onClick={handleCopy} className="text-xs cursor-pointer">
-                  <Copy size={12} className="mr-2" /> Copiar detalles
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Botón de Copiar Directo (Sin Dropdown) */}
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleCopy}
+                className="h-6 w-6 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full"
+                title="Copiar detalles"
+            >
+               <Copy size={14} />
+            </Button>
         </div>
       </div>
 
