@@ -10,7 +10,7 @@ const Gallery = () => {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(null); // Para el Lightbox
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -73,9 +73,10 @@ const Gallery = () => {
         ) : (
           <Tabs defaultValue="all" className="space-y-12">
             
-            {/* Filtros Estilizados */}
-            <div className="flex justify-center">
-              <TabsList className="bg-white border border-stone-200 p-1.5 rounded-full shadow-sm">
+            {/* --- CORRECCIÓN RESPONSIVE AQUÍ --- */}
+            {/* Contenedor scrolleable horizontalmente en móvil, centrado en desktop */}
+            <div className="w-full overflow-x-auto pb-4 flex justify-start md:justify-center no-scrollbar">
+              <TabsList className="bg-white border border-stone-200 p-1.5 rounded-full shadow-sm h-auto inline-flex min-w-max">
                 {categories.map(cat => (
                   <TabsTrigger 
                     key={cat.id} 
@@ -87,12 +88,13 @@ const Gallery = () => {
                 ))}
               </TabsList>
             </div>
+            {/* ----------------------------------- */}
 
             {/* Galería tipo Masonry (Cascada) */}
             {categories.map(cat => (
               <TabsContent key={cat.id} value={cat.id} className="mt-0 min-h-[400px]">
                  <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-                   <AnimatePresence>
+                   <AnimatePresence mode="popLayout">
                     {filterImages(cat.id).map((img, index) => (
                       <motion.div
                         key={img.id}
@@ -104,7 +106,7 @@ const Gallery = () => {
                         className="break-inside-avoid"
                         onClick={() => setSelectedImage(img)}
                       >
-                        <div className="group relative overflow-hidden rounded-2xl bg-stone-100 cursor-zoom-in">
+                        <div className="group relative overflow-hidden rounded-2xl bg-stone-100 cursor-zoom-in border border-stone-100">
                           <img 
                             src={img.image_url} 
                             alt={img.title} 
@@ -154,7 +156,7 @@ const Gallery = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="relative max-w-5xl max-h-[90vh] w-full bg-transparent rounded-lg overflow-hidden"
-                onClick={(e) => e.stopPropagation()} // Evita cerrar si clickeas la imagen
+                onClick={(e) => e.stopPropagation()}
             >
                 <img 
                     src={selectedImage.image_url} 
@@ -169,7 +171,7 @@ const Gallery = () => {
                     <X size={24} />
                 </button>
 
-                <div className="absolute bottom-4 left-4 right-4 text-center">
+                <div className="absolute bottom-4 left-4 right-4 text-center pointer-events-none">
                     <h3 className="text-white font-bold text-xl drop-shadow-md">{selectedImage.title}</h3>
                     {selectedImage.description && <p className="text-white/80 text-sm mt-1 drop-shadow-md">{selectedImage.description}</p>}
                 </div>
