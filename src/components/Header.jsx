@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sprout } from 'lucide-react';
+import { Menu, X } from 'lucide-react'; // QUITAMOS LA IMPORTACIÓN DE 'Sprout'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,14 +26,11 @@ const Header = () => {
 
   // FUNCIÓN CORREGIDA PARA MÓVIL Y DESKTOP
   const handleNavClick = (href) => {
-    setIsMenuOpen(false); // 1. Cerrar menú primero
-
-    // 2. Usar un pequeño timeout para dar tiempo a que el menú empiece a cerrar
+    setIsMenuOpen(false);
     setTimeout(() => {
       const element = document.querySelector(href);
       if (element) {
-        // 3. Cálculo manual del scroll para compensar el Header fijo
-        const headerOffset = 85; // Altura aproximada del header
+        const headerOffset = 85;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - headerOffset;
 
@@ -42,12 +39,11 @@ const Header = () => {
           behavior: "smooth"
         });
       }
-    }, 150); // 150ms de espera es imperceptible pero arregla el bug en móviles
+    }, 10);
   };
 
   return (
     <header 
-      // Ajuste: Si está scrolleado O el menú está abierto, ponemos fondo sólido/glass
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled || isMenuOpen
           ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-stone-200/50 py-3' 
@@ -57,7 +53,7 @@ const Header = () => {
       <nav className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           
-          {/* Logo Animado */}
+          {/* --- LOGO ANIMADO --- */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -65,9 +61,17 @@ const Header = () => {
             className="flex items-center gap-2 group cursor-pointer"
             onClick={() => handleNavClick('#hero')}
           >
-            <div className={`p-2 rounded-full transition-colors ${scrolled || isMenuOpen ? 'bg-amber-100' : 'bg-white/50 backdrop-blur-sm'}`}>
-                <Sprout size={20} className="text-amber-700 group-hover:rotate-12 transition-transform duration-300" />
-            </div>
+            {/* REEMPLAZO DEL ICONO POR LA IMAGEN DEL LOGO */}
+            {/* IMPORTANTE: Reemplaza la URL por la de tu logo optimizado */}
+            <img
+              src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png" 
+              alt="Logo Matukana"
+              // w-8 h-8: Define un tamaño fijo (aprox 32px)
+              // transition-transform duration-300: Suaviza la animación
+              // group-hover:scale-110: Agranda el logo un 10% al pasar el mouse sobre el contenedor
+              className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110"
+            />
+            
             <span className={`text-xl font-bold tracking-wide transition-colors ${scrolled || isMenuOpen ? 'text-amber-900' : 'text-amber-900'}`}>
                 MATUKANA
             </span>
@@ -109,8 +113,7 @@ const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              // 🚀 AQUÍ ESTÁ LA CLAVE DE LA VELOCIDAD:
-              transition={{ duration: 0.2, ease: "easeInOut" }} 
+              transition={{ duration: 0.3, ease: "easeInOut" }} 
               className="md:hidden overflow-hidden bg-white/90 backdrop-blur-xl border-t border-stone-100/50 mt-2 rounded-b-2xl shadow-xl"
             >
               <div className="flex flex-col p-4 space-y-2">

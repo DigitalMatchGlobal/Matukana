@@ -1,6 +1,6 @@
 import React from 'react';
-import { Sprout, ArrowUp, Instagram, Facebook } from 'lucide-react';
-import { Button } from './ui/button';
+import { ArrowUp, Instagram, Facebook, Zap } from 'lucide-react'; // Quitamos Sprout, agregamos Zap (opcional para tech vibe)
+import { Button } from '@/components/ui/button';
 
 const Footer = () => {
   
@@ -27,7 +27,7 @@ const Footer = () => {
     <footer className="bg-stone-900 text-white pt-20 pb-10 px-4 relative overflow-hidden">
       
       {/* Círculo decorativo gigante de fondo */}
-      <div className="absolute -top-20 -right-20 w-96 h-96 bg-amber-900/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -top-20 -right-20 w-96 h-96 bg-amber-900/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="grid md:grid-cols-4 gap-12 mb-16">
@@ -35,18 +35,23 @@ const Footer = () => {
           {/* Columna Marca */}
           <div className="space-y-6 md:col-span-2">
             <div className="flex items-center gap-3">
-              <div className="bg-stone-800 p-2 rounded-lg">
-                  <Sprout size={32} className="text-amber-500" />
+              {/* LOGO REAL MATUKANA */}
+              <div className="bg-stone-800 p-2 rounded-xl border border-stone-700/50 shadow-lg group hover:border-amber-500/30 transition-all duration-500">
+                  <img 
+                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/products/Logo_Matukana.png" 
+                    alt="Logo Matukana"
+                    className="w-10 h-10 object-contain group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"
+                  />
               </div>
-              <span className="text-3xl font-serif font-bold tracking-wide">MATUKANA</span>
+              <span className="text-3xl font-serif font-bold tracking-wide text-stone-100">MATUKANA</span>
             </div>
             <p className="text-stone-400 text-sm leading-relaxed max-w-sm">
               Medicina natural, terapias y experiencias conscientes. Un puente entre la sabiduría de la tierra y tu bienestar en Salta, Argentina.
             </p>
             <div className="flex gap-4 pt-2">
                 {/* Redes Sociales con efecto hover */}
-                <a href="#" className="bg-stone-800 p-2 rounded-full hover:bg-amber-600 transition-colors"><Instagram size={20} /></a>
-                <a href="#" className="bg-stone-800 p-2 rounded-full hover:bg-blue-600 transition-colors"><Facebook size={20} /></a>
+                <a href="https://www.instagram.com/vive.matukana/" target="_blank" rel="noopener noreferrer" className="bg-stone-800 p-2 rounded-full hover:bg-amber-600 hover:text-white text-stone-400 transition-all duration-300 hover:scale-110"><Instagram size={20} /></a>
+                <a href="#" className="bg-stone-800 p-2 rounded-full hover:bg-blue-600 hover:text-white text-stone-400 transition-all duration-300 hover:scale-110"><Facebook size={20} /></a>
             </div>
           </div>
 
@@ -80,24 +85,46 @@ const Footer = () => {
         </div>
 
         {/* Barra inferior */}
-        <div className="border-t border-stone-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-stone-500 text-xs">
-            © {new Date().getFullYear()} Matukana. Todos los derechos reservados.
-          </p>
+        <div className="border-t border-stone-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+            <p className="text-stone-500 text-xs">
+              © {new Date().getFullYear()} Matukana. Todos los derechos reservados.
+            </p>
+            
+            {/* --- FIRMA DIGITAL MATCH GLOBAL (EFECTO WOW) --- */}
+            <a 
+              href="https://www.digitalmatchglobal.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-950 border border-stone-800 hover:border-amber-500/50 transition-all duration-500 overflow-hidden"
+            >
+                {/* Glow de fondo al hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-900/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                
+                <span className="text-[10px] text-stone-500 uppercase tracking-wider font-medium group-hover:text-stone-400 transition-colors">Made by</span>
+                
+                <span className="text-xs font-bold bg-gradient-to-r from-stone-200 via-white to-stone-200 bg-clip-text text-transparent group-hover:from-amber-200 group-hover:via-yellow-400 group-hover:to-amber-200 transition-all duration-300">
+                    DigitalMatchGlobal
+                </span>
+                
+                <Zap size={10} className="text-stone-600 group-hover:text-yellow-400 group-hover:fill-yellow-400 transition-all duration-300" />
+            </a>
+          </div>
           
           <div className="flex items-center gap-6">
               <button 
                 onClick={handleAdminClick}
-                className="text-stone-600 hover:text-amber-500 text-xs transition-colors uppercase tracking-wider font-bold"
+                className="text-stone-700 hover:text-stone-400 text-xs transition-colors uppercase tracking-wider font-bold"
               >
-                Acceso Admin
+                Admin
               </button>
               
               <Button 
                 onClick={scrollToTop}
                 variant="outline"
                 size="icon"
-                className="rounded-full bg-stone-800 border-stone-700 text-stone-300 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
+                className="rounded-full bg-stone-800 border-stone-700 text-stone-300 hover:bg-amber-600 hover:text-white hover:border-amber-600 transition-all shadow-lg hover:shadow-amber-900/20"
               >
                 <ArrowUp size={18} />
               </Button>

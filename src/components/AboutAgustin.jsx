@@ -50,7 +50,7 @@ const AboutAgustin = () => {
           >
             <motion.div variants={itemVariants}>
                 <span className="text-amber-600 font-bold tracking-widest text-xs uppercase mb-2 block">El Guardián</span>
-                <h2 className="text-4xl md:text-5xl font-serif font-bold text-amber-900">Sobre Agustín</h2>
+                <h2 className="text-4xl md:text-5xl font-serif font-bold text-amber-900">Hola! Soy Agustín</h2>
                 <div className="h-1 w-20 bg-amber-500 mt-4 rounded-full"></div>
             </motion.div>
             
@@ -82,7 +82,7 @@ const AboutAgustin = () => {
             >
                 <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
                     <img 
-                        src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/products/Logo_Matukana.png" 
+                        src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/AgusMatukana.png" 
                         alt="Agustín en la naturaleza"
                         className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-1000" // Zoom out suave al hover
                     />
