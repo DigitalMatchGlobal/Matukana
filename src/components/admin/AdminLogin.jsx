@@ -45,7 +45,7 @@ const AdminLogin = ({ onLogin }) => {
             setTimeout(() => {
                 toast({
                     title: "Acceso Concedido",
-                    description: "Bienvenido al Sistema Operativo Matukana.",
+                    description: "Bienvenido al Sistema de Matukana.",
                     className: "bg-stone-900 text-white border-stone-800"
                 });
                 onLogin();
@@ -108,7 +108,7 @@ const AdminLogin = ({ onLogin }) => {
                                 </motion.div>
                             ) : (
                                 <img 
-                                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/products/Logo_Matukana.png" 
+                                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png" 
                                     alt="Matukana" 
                                     className="w-full h-full object-contain"
                                 />
@@ -117,10 +117,10 @@ const AdminLogin = ({ onLogin }) => {
                     </div>
                     
                     <h1 className="text-3xl font-serif font-bold text-stone-800 tracking-tight">
-                        Matukana OS
+                        Matukana
                     </h1>
                     <p className="text-stone-400 text-xs mt-2 font-bold uppercase tracking-[0.2em]">
-                        Admin Access v2.0
+                        Access Admin
                     </p>
                 </div>
 
