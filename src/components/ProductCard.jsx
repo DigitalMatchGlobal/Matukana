@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Star, Leaf, RotateCw, Info, X, Sparkles } from 'lucide-react'; // Agregué Sparkles
+import { MessageCircle, Star, Leaf, RotateCw, Info, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,14 +14,25 @@ const ProductCard = ({ product }) => {
     const message = encodeURIComponent(`Hola! Me interesa el producto: ${product.name}`);
     window.open(`https://wa.me/5493874833177?text=${message}`, '_blank');
     
-    // Lógica de Supabase en background...
     try {
         await supabase.from('inquiries').insert([{ type: 'product', item_name: product.name, status: 'new' }]);
     } catch(err) { console.error(err); }
   };
 
   return (
-    <div className="group h-[450px] perspective-1000"> 
+    // 📍 AJUSTE: Agregamos 'relative' al contenedor principal
+    <div className="group h-[450px] perspective-1000 relative"> 
+
+      {/* 📍 AJUSTE CLAVE 1: El Badge "Destacado" se movió AQUÍ AFUERA.
+          Al estar fuera del motion.div que gira, permanecerá fijo y siempre legible.
+          Le pusimos z-20 para asegurar que flote sobre todo.
+      */}
+      {product.featured && (
+        <div className="absolute top-4 left-4 z-20 bg-amber-400 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+          <Star size={10} fill="currentColor" /> Destacado
+        </div>
+      )}
+      
       <motion.div
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
@@ -33,25 +44,23 @@ const ProductCard = ({ product }) => {
         {/* ================= FRENTE ================= */}
         <div className="absolute inset-0 backface-hidden bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
           
-          {product.featured && (
-            <div className="absolute top-4 left-4 z-10 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
-              <Star size={10} fill="currentColor" /> Destacado
-            </div>
-          )}
-
           {/* Botón Info: SOLO aparece si hay 'details' que mostrar */}
           {product.details && (
             <button 
                 onClick={() => setIsFlipped(true)}
-                className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white p-2 rounded-full shadow-sm text-stone-500 hover:text-amber-600 transition-colors backdrop-blur-sm"
-                title="Ver más detalles"
+                /* 📍 AJUSTE CLAVE 2: Nuevo estilo para el botón 'i'.
+                   Usamos colores ámbar y un fondo más notorio para que no se pierda
+                   y equilibre visualmente al badge del otro lado.
+                */
+                className="absolute top-4 right-4 z-10 text-amber-900 bg-amber-100/80 hover:bg-amber-200 p-2 rounded-full shadow-sm transition-colors backdrop-blur-sm"
+                title="Ver más detalles y secretos"
             >
-                <Info size={18} />
+                <Info size={18} strokeWidth={2.5} /> {/* Un poco más grueso el icono */}
             </button>
           )}
 
           {/* Imagen */}
-          <div className="w-full h-64 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative">
+          <div className="w-full h-64 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative pt-12"> {/* Added pt-12 for spacing from badges */}
             {product.images && product.images.length > 0 ? (
               <img 
                 src={product.images[0]} 
@@ -90,6 +99,8 @@ const ProductCard = ({ product }) => {
             className="absolute inset-0 backface-hidden bg-stone-100 rounded-2xl border border-stone-200 shadow-inner p-6 flex flex-col text-center"
             style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
         >
+            {/* 📍 NOTA: El badge de destacado ya NO se verá aquí al revés, 
+                pero sí se verá "flotando" encima correctamente. */}
             <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
                 <Leaf size={200} />
             </div>
@@ -101,7 +112,7 @@ const ProductCard = ({ product }) => {
                 <X size={20} />
             </button>
 
-            <div className="relative z-10 flex flex-col h-full justify-center">
+            <div className="relative z-10 flex flex-col h-full justify-center pt-8"> {/* Added pt-8 to clear badge area */}
                 <div className="mb-4">
                     <span className="inline-block p-2 bg-amber-200/50 rounded-full text-amber-800 mb-2">
                         <Sparkles size={20} />
@@ -111,7 +122,6 @@ const ProductCard = ({ product }) => {
                 </div>
 
                 <div className="overflow-y-auto max-h-[220px] px-2 custom-scrollbar text-left">
-                    {/* El estilo whitespace-pre-wrap permite que respetemos los saltos de línea que pongas en el admin */}
                     <p className="text-stone-700 text-sm leading-relaxed whitespace-pre-wrap">
                         {product.details || "Información adicional no disponible."}
                     </p>
