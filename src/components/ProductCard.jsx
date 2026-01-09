@@ -21,11 +21,8 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="group h-[480px] perspective-1000 relative"> 
-      {/* Altura aumentada levemente a 480px para dar más aire al contenido */}
 
-      {/* 1. BADGE DESTACADO (FIJO A LA IZQUIERDA) 
-          Aseguramos left-4 para que esté bien pegado a la izquierda
-      */}
+      {/* 1. BADGE DESTACADO (FIJO A LA IZQUIERDA) */}
       {product.featured && (
         <div className="absolute top-4 left-4 z-20 bg-amber-400 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
           <Star size={10} fill="currentColor" /> Destacado
@@ -43,22 +40,21 @@ const ProductCard = ({ product }) => {
         {/* ================= FRENTE ================= */}
         <div className="absolute inset-0 backface-hidden bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
           
-          {/* 2. BOTÓN INFO (FIJO A LA DERECHA)
-             Aseguramos right-4. Al estar en extremos opuestos, ya no se solaparán.
+          {/* 2. BOTÓN "MÁS INFO" ESTILO PÍLDORA 
+             Ahora es igual al de destacado pero a la derecha y con color interactivo (ámbar suave).
           */}
           {product.details && (
             <button 
                 onClick={() => setIsFlipped(true)}
-                className="absolute top-4 right-4 z-10 text-amber-900 bg-amber-100/80 hover:bg-amber-200 p-2 rounded-full shadow-sm transition-colors backdrop-blur-sm"
-                title="Ver más detalles y secretos"
+                className="absolute top-4 right-4 z-10 bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Ver detalles"
             >
-                <Info size={18} strokeWidth={2.5} />
+                <Info size={12} strokeWidth={2.5} /> Más info
             </button>
           )}
 
           {/* Imagen */}
           <div className="w-full h-60 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative pt-14"> 
-            {/* pt-14 asegura que la imagen no choque con los badges superiores */}
             {product.images && product.images.length > 0 ? (
               <img 
                 src={product.images[0]} 
@@ -77,17 +73,18 @@ const ProductCard = ({ product }) => {
                 {product.name}
             </h3>
             
-            {/* Descripción corta */}
             <p className="text-stone-500 text-sm line-clamp-2 mb-3">
                 {product.description}
             </p>
 
-            {/* 3. RECUPERAMOS EL ESTILO "USO" CON HOJITA 🍃 */}
+            {/* 3. USO: TEXTO DE CORRIDO 
+               Quitamos el 'block' para que quede todo en una línea.
+            */}
             {product.use_text && (
-              <div className="mt-auto mb-4 flex items-start gap-2.5 p-3 bg-stone-50/80 rounded-lg border border-stone-100">
-                <Leaf size={16} className="text-green-600 mt-0.5 shrink-0 fill-green-50" />
-                <p className="text-xs text-stone-600 leading-snug">
-                  <span className="font-bold text-stone-700 block mb-0.5">Uso:</span>
+              <div className="mt-auto mb-4 flex items-start gap-2 p-3 bg-stone-50/80 rounded-lg border border-stone-100">
+                <Leaf size={14} className="text-green-600 mt-1 shrink-0 fill-green-50" />
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  <span className="font-bold text-stone-700">Uso: </span>
                   <span className="italic">{product.use_text}</span>
                 </p>
               </div>
