@@ -37,6 +37,7 @@ const ProductManager = () => {
     name: '',
     description: '',
     use_text: '',
+    details: '',
     price: '',
     featured: false,
     images: []
@@ -66,6 +67,7 @@ const ProductManager = () => {
       name: '',
       description: '',
       use_text: '',
+      details: '',
       price: '',
       featured: false,
       images: []
@@ -80,6 +82,7 @@ const ProductManager = () => {
         name: product.name,
         description: product.description || '',
         use_text: product.use_text || '',
+        details: product.details || '',
         price: product.price,
         featured: product.featured || false,
         images: product.images || []
@@ -291,7 +294,7 @@ const ProductManager = () => {
               />
             </div>
 
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <label htmlFor="description" className="text-sm font-medium text-stone-700">Descripción</label>
               <textarea
                 id="description"
@@ -300,6 +303,32 @@ const ProductManager = () => {
                 className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 resize-none"
                 placeholder="Descripción corta del producto"
               />
+            </div> */}
+            
+            <div className="grid gap-2">
+              <label htmlFor="description" className="text-sm font-medium text-stone-700">Descripción (Frente)</label>
+              <textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="flex min-h-[80px] w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                placeholder="Descripción corta del producto"
+              />
+            </div>
+
+            {/* 2. CAMPO GENÉRICO PARA EL REVERSO */}
+            <div className="grid gap-2">
+              <label htmlFor="details" className="text-sm font-medium text-stone-700">Información del Reverso (Detalles / Ingredientes / Tips)</label>
+              <textarea
+                id="details"
+                value={formData.details}
+                onChange={(e) => setFormData({...formData, details: e.target.value})}
+                className="flex min-h-[100px] w-full rounded-md border border-stone-300 bg-amber-50 px-3 py-2 text-sm placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                placeholder="Escribe aquí ingredientes, modo de uso extendido, o una historia sobre el producto..."
+              />
+              <p className="text-[10px] text-stone-500">
+                Este texto aparecerá cuando el cliente gire la tarjeta.
+              </p>
             </div>
 
             <div className="grid gap-2">
@@ -325,6 +354,13 @@ const ProductManager = () => {
                   Destacar este producto en la portada
               </label>
             </div>
+
+            
+
+            
+
+
+
           </div>
 
           <DialogFooter>
