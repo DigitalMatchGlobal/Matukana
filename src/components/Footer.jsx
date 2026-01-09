@@ -38,7 +38,7 @@ const Footer = () => {
               {/* LOGO REAL MATUKANA */}
               <div className="bg-stone-800 p-2 rounded-xl border border-stone-700/50 shadow-lg group hover:border-amber-500/30 transition-all duration-500">
                   <img 
-                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/products/Logo_Matukana.png" 
+                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png" 
                     alt="Logo Matukana"
                     className="w-10 h-10 object-contain group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"
                   />
