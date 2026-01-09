@@ -103,7 +103,7 @@ const AdminDashboard = ({ onLogout }) => {
              {/* Logo pequeño */}
              <div className="bg-amber-100/50 p-1.5 rounded-lg">
                 <img 
-                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/products/Logo_Matukana.png" 
+                    src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png" 
                     alt="Logo" 
                     className="w-6 h-6 object-contain"
                 />
