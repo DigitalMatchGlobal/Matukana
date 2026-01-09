@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, Pencil } from 'lucide-react'; // Agregamos Pencil
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
-import ImageUploader from './ImageUploader'; // <--- IMPORTANTE: Importar el Uploader
+import ImageUploader from './ImageUploader';
 import {
   Dialog,
   DialogContent,
@@ -29,13 +29,14 @@ const GalleryManager = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingImage, setEditingImage] = useState(null); // Nuevo estado para edición
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: 'products',
-    image_url: '' // Mantenemos string porque la galería suele ser 1 foto por item
+    image_url: ''
   });
 
   useEffect(() => {
@@ -64,10 +65,22 @@ const GalleryManager = () => {
       category: 'products',
       image_url: ''
     });
+    setEditingImage(null); // Limpiamos el estado de edición
   };
 
-  const handleOpenDialog = () => {
-    resetForm();
+  // Modificamos para aceptar una imagen opcional
+  const handleOpenDialog = (image = null) => {
+    if (image) {
+        setEditingImage(image);
+        setFormData({
+            title: image.title || '',
+            description: image.description || '',
+            category: image.category || 'products',
+            image_url: image.image_url || ''
+        });
+    } else {
+        resetForm();
+    }
     setIsDialogOpen(true);
   };
 
@@ -78,13 +91,30 @@ const GalleryManager = () => {
         return;
       }
 
-      const { error } = await supabase
-        .from('gallery')
-        .insert([formData]);
+      let error;
+
+      if (editingImage) {
+        // --- MODO EDICIÓN (UPDATE) ---
+        const { error: updateError } = await supabase
+            .from('gallery')
+            .update(formData)
+            .eq('id', editingImage.id); // Buscamos por ID
+        error = updateError;
+      } else {
+        // --- MODO CREACIÓN (INSERT) ---
+        const { error: insertError } = await supabase
+            .from('gallery')
+            .insert([formData]);
+        error = insertError;
+      }
         
       if (error) throw error;
       
-      toast({ title: "Imagen añadida", description: "La imagen se ha guardado en la galería." });
+      toast({ 
+          title: editingImage ? "Imagen actualizada" : "Imagen añadida", 
+          description: "Los cambios se han guardado correctamente." 
+      });
+      
       setIsDialogOpen(false);
       fetchImages();
       resetForm();
@@ -127,7 +157,7 @@ const GalleryManager = () => {
           <h2 className="text-xl font-bold text-amber-900">Gestión de Galería</h2>
           <p className="text-sm text-stone-600">Sube y organiza las fotos del sitio</p>
         </div>
-        <Button onClick={handleOpenDialog} className="bg-amber-900 hover:bg-amber-800 text-white">
+        <Button onClick={() => handleOpenDialog()} className="bg-amber-900 hover:bg-amber-800 text-white">
           <Plus size={18} className="mr-2" />
           Nueva Imagen
         </Button>
@@ -153,7 +183,7 @@ const GalleryManager = () => {
                 <TabsContent value="all" className="mt-0">
                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                      {images.map((img) => (
-                       <ImageCard key={img.id} img={img} onDelete={handleDelete} />
+                       <ImageCard key={img.id} img={img} onEdit={handleOpenDialog} onDelete={handleDelete} />
                      ))}
                      {images.length === 0 && <p className="text-stone-500 col-span-full text-center py-8">No hay imágenes en la galería.</p>}
                    </div>
@@ -163,7 +193,7 @@ const GalleryManager = () => {
                     <TabsContent key={cat.id} value={cat.id} className="mt-0">
                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                          {filterImages(cat.id).map((img) => (
-                           <ImageCard key={img.id} img={img} onDelete={handleDelete} />
+                           <ImageCard key={img.id} img={img} onEdit={handleOpenDialog} onDelete={handleDelete} />
                          ))}
                          {filterImages(cat.id).length === 0 && <p className="text-stone-500 col-span-full text-center py-8">No hay imágenes en esta categoría.</p>}
                        </div>
@@ -177,7 +207,7 @@ const GalleryManager = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px] bg-white">
           <DialogHeader>
-            <DialogTitle>Nueva Imagen</DialogTitle>
+            <DialogTitle>{editingImage ? 'Editar Imagen' : 'Nueva Imagen'}</DialogTitle>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
@@ -206,20 +236,16 @@ const GalleryManager = () => {
               </select>
             </div>
 
-            {/* --- REEMPLAZO DEL INPUT DE URL POR IMAGE UPLOADER --- */}
             <div className="p-3 bg-stone-50 rounded-lg border border-stone-100">
                 <label className="text-sm font-medium text-stone-700 mb-2 block">Imagen</label>
                 <ImageUploader 
-                    // Convertimos el string único a array para el componente
                     images={formData.image_url ? [formData.image_url] : []} 
-                    // Al cambiar, tomamos el primer elemento del array y lo guardamos como string
                     onChange={(newImages) => setFormData({...formData, image_url: newImages[0] || ''})} 
                     maxImages={1}
                     bucketName="media"
-                    folderPath="gallery" // Carpeta específica para galería
+                    folderPath="gallery"
                 />
             </div>
-            {/* ----------------------------------------------------- */}
 
             <div className="grid gap-2">
               <label htmlFor="description" className="text-sm font-medium text-stone-700">Descripción (Opcional)</label>
@@ -245,7 +271,7 @@ const GalleryManager = () => {
   );
 };
 
-const ImageCard = ({ img, onDelete }) => {
+const ImageCard = ({ img, onEdit, onDelete }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -254,7 +280,21 @@ const ImageCard = ({ img, onDelete }) => {
     >
       <div className="aspect-square bg-stone-100 relative overflow-hidden">
         <img src={img.image_url} alt={img.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+        
+        {/* Overlay con botones de acción */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+            
+            {/* Botón Editar */}
+            <Button 
+                onClick={() => onEdit(img)} 
+                variant="secondary" 
+                size="icon" 
+                className="rounded-full bg-white/90 hover:bg-white text-amber-900"
+            >
+                <Pencil size={18} />
+            </Button>
+
+            {/* Botón Eliminar */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="icon" className="rounded-full">
@@ -277,7 +317,7 @@ const ImageCard = ({ img, onDelete }) => {
         </div>
       </div>
       <div className="p-3">
-        <h4 className="font-bold text-sm text-amber-900 truncate">{img.title}</h4>
+        <h4 className="font-bold text-sm text-amber-900 truncate" title={img.title}>{img.title}</h4>
         <p className="text-xs text-stone-500 truncate">{img.category}</p>
       </div>
     </motion.div>
