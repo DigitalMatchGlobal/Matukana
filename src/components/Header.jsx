@@ -1,32 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react'; // QUITAMOS LA IMPORTACIÓN DE 'Sprout'
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Detectar scroll para el efecto "Glass"
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // IMPORTANTE: estos IDs deben existir en el DOM (ya los agregamos en App.jsx)
   const navLinks = [
-    { name: 'Inicio', href: '#hero' },
-    { name: 'Sobre Agustín', href: '#sobre-agustin' },
-    { name: 'Productos', href: '#productos' },
-    { name: 'Terapias', href: '#terapias' },
-    { name: 'Experiencias', href: '#experiencias' },
-    { name: 'Contacto', href: '#contacto' }
+    { name: "Inicio", href: "#inicio" },
+    { name: "Sobre Agustín", href: "#sobre-agustin" },
+    { name: "Productos", href: "#productos" },
+    { name: "Terapias", href: "#terapias" },
+    { name: "Experiencias", href: "#experiencias" },
+    { name: "Galería", href: "#galeria" },
+    { name: "Contacto", href: "#contacto" },
   ];
 
-  // FUNCIÓN CORREGIDA PARA MÓVIL Y DESKTOP
   const handleNavClick = (href) => {
     setIsMenuOpen(false);
+
+    // Si estás en #admin por alguna razón, limpiamos el hash antes de navegar
+    if (window.location.hash === "#admin") {
+      window.location.hash = "";
+    }
+
     setTimeout(() => {
       const element = document.querySelector(href);
       if (element) {
@@ -36,44 +40,41 @@ const Header = () => {
 
         window.scrollTo({
           top: offsetPosition,
-          behavior: "smooth"
+          behavior: "smooth",
         });
       }
     }, 10);
   };
 
   return (
-    <header 
+    <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled || isMenuOpen
-          ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-stone-200/50 py-3' 
-          : 'bg-transparent py-5'
+          ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-stone-200/50 py-3"
+          : "bg-transparent py-5"
       }`}
     >
       <nav className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          
-          {/* --- LOGO ANIMADO --- */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 group cursor-pointer"
-            onClick={() => handleNavClick('#hero')}
+            onClick={() => handleNavClick("#inicio")}
           >
-            {/* REEMPLAZO DEL ICONO POR LA IMAGEN DEL LOGO */}
-            {/* IMPORTANTE: Reemplaza la URL por la de tu logo optimizado */}
             <img
-              src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png" 
+              src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png"
               alt="Logo Matukana"
-              // w-8 h-8: Define un tamaño fijo (aprox 32px)
-              // transition-transform duration-300: Suaviza la animación
-              // group-hover:scale-110: Agranda el logo un 10% al pasar el mouse sobre el contenedor
               className="w-10 h-10 object-contain transition-transform duration-300 group-hover:scale-110"
             />
-            
-            <span className={`text-xl font-bold tracking-wide transition-colors ${scrolled || isMenuOpen ? 'text-amber-900' : 'text-amber-900'}`}>
-                MATUKANA
+
+            <span
+              className={`text-xl font-bold tracking-wide transition-colors ${
+                scrolled || isMenuOpen ? "text-amber-900" : "text-amber-900"
+              }`}
+            >
+              MATUKANA
             </span>
           </motion.div>
 
@@ -111,9 +112,9 @@ const Header = () => {
           {isMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }} 
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="md:hidden overflow-hidden bg-white/90 backdrop-blur-xl border-t border-stone-100/50 mt-2 rounded-b-2xl shadow-xl"
             >
               <div className="flex flex-col p-4 space-y-2">

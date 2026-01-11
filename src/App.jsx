@@ -13,6 +13,7 @@ import AdminDashboard from "@/components/admin/AdminDashboard";
 import { Toaster } from "@/components/ui/toaster";
 import CustomCursor from "@/components/ui/CustomCursor";
 import SEO from "@/components/SEO";
+import { useActiveSection } from "@/lib/useActiveSection";
 
 function App() {
   const [isAdminRoute, setIsAdminRoute] = useState(
@@ -28,7 +29,9 @@ function App() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  // --- LÓGICA DE ADMIN ---
+  // -------------------------
+  // ADMIN: no index
+  // -------------------------
   if (isAdminRoute) {
     return (
       <>
@@ -46,28 +49,90 @@ function App() {
     );
   }
 
-  // --- SITIO PÚBLICO (EXPERIENCIA) ---
+  // -------------------------
+  // PÚBLICO: SEO dinámico por sección
+  // -------------------------
+  const publicSectionIds = [
+    "inicio",
+    "sobre-agustin",
+    "productos",
+    "terapias",
+    "experiencias",
+    "galeria",
+    "contacto",
+  ];
+
+  const activeSection = useActiveSection(publicSectionIds);
+
+  const seoBySection = {
+    inicio: {
+      title: "Matukana | Bienestar, masajes y terapias holísticas en Salta",
+      description:
+        "Masajes terapéuticos, terapias holísticas y medicina natural en el centro de Salta. Atención de lunes a viernes de 12 a 20 hs. Reservas por WhatsApp.",
+    },
+    "sobre-agustin": {
+      title: "Sobre Agustín | Matukana",
+      description:
+        "Conocé la historia de Matukana y el recorrido de Agustín: territorio, plantas medicinales, terapias y bienestar integral en Salta.",
+    },
+    productos: {
+      title: "Productos naturales en Salta | Matukana",
+      description:
+        "Aceites, ungüentos y preparados artesanales a base de plantas medicinales. Consultas y pedidos por WhatsApp desde Salta.",
+    },
+    terapias: {
+      title: "Masajes terapéuticos y terapias holísticas en Salta | Matukana",
+      description:
+        "Sesiones corporales y energéticas en el centro de Salta. Acompañamiento personalizado para bienestar físico y equilibrio.",
+    },
+    experiencias: {
+      title: "Experiencias conscientes en Salta | Caminatas y rituales | Matukana",
+      description:
+        "Caminatas, sahumos y experiencias en la naturaleza. Conexión con el territorio y bienestar integral desde Salta.",
+    },
+    galeria: {
+      title: "Galería | Matukana",
+      description:
+        "Imágenes de Matukana: terapias, productos naturales y experiencias. Naturaleza, territorio y bienestar en Salta.",
+    },
+    contacto: {
+      title: "Contacto Matukana | Turnos y ubicación en Salta",
+      description:
+        "Atención de lunes a viernes de 12 a 20 hs. Turnos por WhatsApp. Instagram: @vive.matukana. Centro de Salta.",
+    },
+  };
+
+  const activeSEO = seoBySection[activeSection] || seoBySection.inicio;
+
   return (
     <>
       <SEO
-        title="Matukana | Bienestar, masajes y terapias holísticas en Salta"
-        description="Masajes terapéuticos, terapias holísticas y medicina natural en el centro de Salta. Productos naturales y acompañamientos personalizados. Reservas por WhatsApp."
-        // ogImage="/og-image.png" // opcional, ya toma el default
+        title={activeSEO.title}
+        description={activeSEO.description}
         schema={{
           "@context": "https://schema.org",
           "@type": "WellnessCenter",
-          "name": "Matukana",
-          "url": "https://www.vivematukana.com",
-          "telephone": "+54 387 4833177",
-          "address": {
+          name: "Matukana",
+          url: "https://www.vivematukana.com",
+          telephone: "+5493874833177",
+          sameAs: ["https://www.instagram.com/vive.matukana/"],
+          openingHoursSpecification: [
+            {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+              opens: "12:00",
+              closes: "20:00",
+            },
+          ],
+          address: {
             "@type": "PostalAddress",
-            "streetAddress": "Ameghino 653, Hotel Inkai, 2° piso",
-            "addressLocality": "Salta",
-            "addressRegion": "Salta",
-            "postalCode": "4400",
-            "addressCountry": "AR"
+            streetAddress: "Ameghino 653, Hotel Inkai, 2° piso",
+            addressLocality: "Salta",
+            addressRegion: "Salta",
+            postalCode: "4400",
+            addressCountry: "AR",
           },
-          "areaServed": "Salta, Argentina"
+          areaServed: "Salta, Argentina",
         }}
       />
 
@@ -76,15 +141,37 @@ function App() {
 
       <div className="min-h-screen bg-stone-50">
         <Header />
+
         <main>
-          <Hero />
-          <AboutAgustin />
-          <Products />
-          <Therapies />
-          <Experiences />
-          <Gallery />
-          <Contact />
+          <section id="inicio">
+            <Hero />
+          </section>
+
+          <section id="sobre-agustin">
+            <AboutAgustin />
+          </section>
+
+          <section id="productos">
+            <Products />
+          </section>
+
+          <section id="terapias">
+            <Therapies />
+          </section>
+
+          <section id="experiencias">
+            <Experiences />
+          </section>
+
+          <section id="galeria">
+            <Gallery />
+          </section>
+
+          <section id="contacto">
+            <Contact />
+          </section>
         </main>
+
         <Footer />
         <Toaster />
       </div>
