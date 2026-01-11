@@ -1,73 +1,82 @@
+// src/components/SEO.jsx
 import React from "react";
 import { Helmet } from "react-helmet-async";
 
-function stripHash(url) {
-  // saca #loquesea para canonical/og:url
-  return (url || "").split("#")[0];
-}
-
-function absolutize(siteUrl, pathOrUrl) {
-  if (!pathOrUrl) return siteUrl;
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-
-  const cleanBase = siteUrl.replace(/\/$/, "");
-  const cleanPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
-  return `${cleanBase}${cleanPath}`;
-}
+const SITE = {
+  name: "Matukana",
+  domain: "https://www.vivematukana.com",
+  defaultOg: "/og-image.png",
+  twitterCard: "summary_large_image",
+};
 
 export default function SEO({
   title,
   description,
   keywords,
-  ogType = "website",
-  ogImage, // path "/og-image.png" o url absoluta
-  noindex = false, // para admin/login
-  schema, // objeto JSON-LD opcional
+  canonicalPath = "/",
+  ogImage,
+  type = "website",
+  noindex = false,
+  schema, // objeto o array JSON-LD
 }) {
-  // Dominio desde .env (Vite)
-  const envSiteUrl = (import.meta?.env?.VITE_SITE_URL || "").trim();
-  const siteUrl =
-    envSiteUrl && /^https?:\/\//i.test(envSiteUrl)
-      ? envSiteUrl
-      : "https://www.vivematukana.com";
+  // Evita duplicar "Matukana | ... | Matukana"
+  const cleanTitle = (title || "").trim();
+  const alreadyHasBrand = cleanTitle.toLowerCase().includes(SITE.name.toLowerCase());
+  const fullTitle = cleanTitle
+    ? alreadyHasBrand
+      ? cleanTitle
+      : `${cleanTitle} | ${SITE.name}`
+    : SITE.name;
 
-  // Canonical dinámico (SIN hash)
-  const currentUrl =
-    typeof window !== "undefined" ? stripHash(window.location.href) : siteUrl;
+  const canonicalUrl =
+    canonicalPath.startsWith("http")
+      ? canonicalPath
+      : `${SITE.domain}${canonicalPath}`;
 
-  // OG image absoluta
-  const defaultImage = "/og-image.png";
-  const imageAbs = absolutize(siteUrl, ogImage || defaultImage);
+  const imageUrl = ogImage
+    ? ogImage.startsWith("http")
+      ? ogImage
+      : `${SITE.domain}${ogImage}`
+    : `${SITE.domain}${SITE.defaultOg}`;
 
   const robots = noindex ? "noindex,nofollow" : "index,follow";
+
+  // Soporta schema objeto o array (graph)
+  const jsonLd =
+    Array.isArray(schema)
+      ? { "@context": "https://schema.org", "@graph": schema }
+      : schema || null;
 
   return (
     <Helmet>
       {/* Básico */}
-      {title ? <title>{title}</title> : null}
-      {description ? <meta name="description" content={description} /> : null}
-      {keywords ? <meta name="keywords" content={keywords} /> : null}
+      <meta charSet="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <title>{fullTitle}</title>
+      {description && <meta name="description" content={description} />}
+      {keywords && <meta name="keywords" content={keywords} />}
       <meta name="robots" content={robots} />
-      <link rel="canonical" href={currentUrl} />
+      <link rel="canonical" href={canonicalUrl} />
 
       {/* Open Graph */}
-      <meta property="og:type" content={ogType} />
-      <meta property="og:site_name" content="Matukana" />
-      {title ? <meta property="og:title" content={title} /> : null}
-      {description ? <meta property="og:description" content={description} /> : null}
-      <meta property="og:url" content={currentUrl} />
-      <meta property="og:image" content={imageAbs} />
+      <meta property="og:site_name" content={SITE.name} />
+      <meta property="og:type" content={type} />
+      <meta property="og:title" content={fullTitle} />
+      {description && <meta property="og:description" content={description} />}
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:image" content={imageUrl} />
 
       {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      {title ? <meta name="twitter:title" content={title} /> : null}
-      {description ? <meta name="twitter:description" content={description} /> : null}
-      <meta name="twitter:image" content={imageAbs} />
+      <meta name="twitter:card" content={SITE.twitterCard} />
+      <meta name="twitter:title" content={fullTitle} />
+      {description && <meta name="twitter:description" content={description} />}
+      <meta name="twitter:image" content={imageUrl} />
 
-      {/* Schema.org JSON-LD */}
-      {schema ? (
-        <script type="application/ld+json">{JSON.stringify(schema)}</script>
-      ) : null}
+      {/* JSON-LD */}
+      {jsonLd && (
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      )}
     </Helmet>
   );
 }
