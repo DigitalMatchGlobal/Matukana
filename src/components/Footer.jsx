@@ -1,9 +1,12 @@
 import React from 'react';
-import { ArrowUp, Instagram, Facebook, Zap } from 'lucide-react'; 
+import { ArrowUp, Instagram, Facebook, Zap, Star, MessageCircle } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 
 const Footer = () => {
-  
+  // ⚠️ REEMPLAZA ESTO CON EL LINK DE TU AMIGO
+  // Si no tienes el link corto, busca el negocio en Google Maps, dale a "Compartir" y copia ese link.
+  const GOOGLE_REVIEW_LINK = "https://g.page/r/Cd2im7cmXmSGEAE/review"; 
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -24,12 +27,49 @@ const Footer = () => {
   );
 
   return (
-    <footer className="bg-stone-900 text-white pt-20 pb-10 px-4 relative overflow-hidden">
+    <footer className="bg-stone-900 text-white pt-16 pb-10 px-4 relative overflow-hidden">
       
       {/* Círculo decorativo gigante de fondo */}
       <div className="absolute -top-20 -right-20 w-96 h-96 bg-amber-900/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="container mx-auto max-w-6xl relative z-10">
+        
+        {/* --- NUEVA SECCIÓN MINIMALISTA DE RESEÑAS --- */}
+        {/* Se integra visualmente usando tonos stone oscuros y bordes sutiles */}
+        <div className="mb-16 bg-stone-800/30 backdrop-blur-sm border border-stone-800 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-stone-700 transition-colors duration-500">
+          
+          <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4">
+             {/* Icono Google visualmente simplificado o Estrellas */}
+             <div className="bg-stone-800 p-3 rounded-full shrink-0">
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} size={14} className="fill-amber-500 text-amber-500" />
+                  ))}
+                </div>
+             </div>
+             
+             <div>
+               <h4 className="font-serif font-bold text-lg text-stone-100">
+                 ¿Disfrutaste la experiencia?
+               </h4>
+               <p className="text-stone-400 text-sm">
+                 Tu opinión nos ayuda a seguir sembrando bienestar.
+               </p>
+             </div>
+          </div>
+
+          <a 
+            href={GOOGLE_REVIEW_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 flex items-center gap-2 bg-stone-100 hover:bg-amber-500 text-stone-900 hover:text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-amber-900/20 transform hover:-translate-y-0.5"
+          >
+            <MessageCircle size={16} />
+            <span>Dejar reseña en Google</span>
+          </a>
+        </div>
+        {/* ------------------------------------------- */}
+
         <div className="grid md:grid-cols-4 gap-12 mb-16">
           
           {/* Columna Marca */}
@@ -92,25 +132,21 @@ const Footer = () => {
               © {new Date().getFullYear()} Matukana. Todos los derechos reservados.
             </p>
             
-            {/* --- FIRMA DIGITAL MATCH GLOBAL (BRANDING AZUL/VIOLETA) --- */}
+            {/* --- FIRMA DIGITAL MATCH GLOBAL --- */}
             <a 
               href="https://www.digitalmatchglobal.com/" 
               target="_blank" 
               rel="noopener noreferrer"
-              // Borde hover cambia a Azul Eléctrico (#2563EB)
               className="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-950 border border-stone-800 hover:border-[#2563EB]/50 transition-all duration-500 overflow-hidden"
             >
-                {/* Glow de fondo: Azul Eléctrico al pasar el mouse */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#2563EB]/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                 
                 <span className="text-[10px] text-stone-500 uppercase tracking-wider font-medium group-hover:text-stone-400 transition-colors">Made by</span>
                 
-                {/* GRADIENTE DE MARCA: #2563EB (Azul) a #6D5DFE (Violeta) */}
                 <span className="text-xs font-bold bg-gradient-to-r from-[#2563EB] to-[#6D5DFE] bg-clip-text text-transparent transition-all duration-300 group-hover:brightness-125">
                     DigitalMatchGlobal
                 </span>
                 
-                {/* Rayo: Se prende en Violeta Tech (#6D5DFE) */}
                 <Zap size={10} className="text-stone-600 group-hover:text-[#6D5DFE] group-hover:fill-[#6D5DFE] transition-all duration-300" />
             </a>
           </div>
