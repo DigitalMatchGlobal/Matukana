@@ -4,10 +4,16 @@ import { MessageCircle, Star, Leaf, RotateCw, Info, X, Sparkles } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { getOptimizedImage } from '@/lib/utils'; // IMPORTANTE: Importamos la utilidad
 
 const ProductCard = ({ product }) => {
   const { toast } = useToast();
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // Aseguramos la URL optimizada aquí mismo (ancho 500px es perfecto para cards)
+  const imageUrl = product.images && product.images.length > 0 
+    ? getOptimizedImage(product.images[0], 500) 
+    : null;
 
   const handleConsult = async (e) => {
     e.stopPropagation();
@@ -20,11 +26,8 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    // 📍 AJUSTE FINAL: Aumentamos la altura de h-[480px] a h-[550px].
-    // Esto asegura que en celulares (donde el texto ocupa más líneas) el botón nunca se corte.
     <div className="group h-[550px] perspective-1000 relative"> 
 
-      {/* BADGE DESTACADO */}
       {product.featured && (
         <div className="absolute top-4 left-4 z-20 bg-amber-400 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
           <Star size={10} fill="currentColor" /> Destacado
@@ -42,7 +45,6 @@ const ProductCard = ({ product }) => {
         {/* ================= FRENTE ================= */}
         <div className="absolute inset-0 backface-hidden bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
           
-          {/* BOTÓN "MÁS INFO" ESTILO PÍLDORA */}
           {product.details && (
             <button 
                 onClick={() => setIsFlipped(true)}
@@ -55,10 +57,16 @@ const ProductCard = ({ product }) => {
 
           {/* Imagen */}
           <div className="w-full h-64 bg-gradient-to-b from-stone-50 to-white flex items-center justify-center p-6 relative pt-14"> 
-            {product.images && product.images.length > 0 ? (
+            {imageUrl ? (
               <img 
-                src={product.images[0]} 
-                alt={product.name} 
+                src={imageUrl} 
+                alt={product.name}
+                // --- AJUSTES QUIRÚRGICOS DE PERFORMANCE ---
+                width="500" // Define ratio de aspecto explícito (Vital para CLS)
+                height="500" // Define ratio de aspecto explícito
+                loading="lazy" // Carga diferida nativa
+                decoding="async" // No bloquea el hilo principal al decodificar
+                // ------------------------------------------
                 className="h-full w-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
@@ -77,7 +85,6 @@ const ProductCard = ({ product }) => {
                 {product.description}
             </p>
 
-            {/* CAJA DE USO */}
             {product.use_text && (
               <div className="mt-auto mb-4 flex items-start gap-2 p-3 bg-stone-50/80 rounded-lg border border-stone-100">
                 <Leaf size={14} className="text-green-600 mt-1 shrink-0 fill-green-50" />
@@ -88,12 +95,10 @@ const ProductCard = ({ product }) => {
               </div>
             )}
             
-            {/* FOOTER (PRECIO Y BOTÓN) */}
-            {/* Al aumentar la altura general, esta sección tendrá espacio seguro abajo */}
             <div className="flex items-center justify-between pt-3 border-t border-stone-100 mt-auto">
               <div className="flex flex-col">
-                 <span className="text-[10px] uppercase tracking-wider text-stone-400 font-medium">Precio</span>
-                 <span className="text-xl font-bold text-amber-900">{product.price}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-stone-400 font-medium">Precio</span>
+                  <span className="text-xl font-bold text-amber-900">{product.price}</span>
               </div>
               <Button onClick={handleConsult} size="sm" className="bg-green-600 hover:bg-green-700 text-white rounded-full px-5 shadow-lg shadow-green-100 transition-transform active:scale-95">
                 <MessageCircle size={16} className="mr-2" /> Consultar
@@ -102,7 +107,7 @@ const ProductCard = ({ product }) => {
           </div>
         </div>
 
-        {/* ================= REVERSO (INFO EXTRA) ================= */}
+        {/* ================= REVERSO ================= */}
         <div 
             className="absolute inset-0 backface-hidden bg-stone-100 rounded-2xl border border-stone-200 shadow-inner p-6 flex flex-col text-center"
             style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
@@ -127,7 +132,6 @@ const ProductCard = ({ product }) => {
                     <div className="h-0.5 w-12 bg-amber-300 mx-auto rounded-full mt-2"></div>
                 </div>
 
-                {/* Ajustamos la altura máxima del scroll para aprovechar los nuevos 550px */}
                 <div className="overflow-y-auto max-h-[280px] px-2 custom-scrollbar text-left">
                     <p className="text-stone-700 text-sm leading-relaxed whitespace-pre-wrap">
                         {product.details || "Información adicional no disponible."}
