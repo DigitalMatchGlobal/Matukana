@@ -1,3 +1,9 @@
 User-agent: *
 Allow: /
-Sitemap: https://www.vivematukana.com/sitemap.xml
+
+# Bloqueamos el admin para que no salga en Google
+Disallow: /admin/
+Disallow: /#admin
+
+# Enlace al mapa del sitio
+Sitemap: https://vivematukana.com/sitemap.xml

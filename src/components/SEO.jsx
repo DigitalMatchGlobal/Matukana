@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 
 const SITE = {
   name: "Matukana",
-  domain: "https://www.vivematukana.com",
+  domain: "https://vivematukana.com",
   defaultOg: "/og-image.png",
   twitterCard: "summary_large_image",
 };
