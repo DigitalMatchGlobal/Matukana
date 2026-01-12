@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { Leaf, Quote } from 'lucide-react';
+import { getOptimizedImage } from "@/lib/utils"; // Importamos el optimizador
 
 const AboutAgustin = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   
-  // Parallax Logic: La imagen se moverá más lento que el scroll
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
@@ -15,7 +15,6 @@ const AboutAgustin = () => {
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 5]);
 
-  // Variantes para el texto (Efecto cascada)
   const textVariants = {
     hidden: { opacity: 0, x: -50 },
     visible: { 
@@ -30,11 +29,13 @@ const AboutAgustin = () => {
     visible: { opacity: 1, y: 0 }
   };
 
+  // URL original
+  const imageUrl = "https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/AgusMatukana.png";
+
   return (
     <section id="sobre-agustin" className="py-24 px-4 bg-stone-50 overflow-hidden" ref={containerRef}>
       <div className="container mx-auto max-w-6xl relative">
         
-        {/* Elemento decorativo de fondo (Tech/Organic) */}
         <div className="absolute top-0 right-0 -z-10 opacity-10">
             <Leaf size={400} className="text-amber-900 rotate-12" />
         </div>
@@ -74,24 +75,26 @@ const AboutAgustin = () => {
             </div>
           </motion.div>
 
-          {/* COLUMNA IMAGEN (PARALLAX + FLOTANTE) */}
+          {/* COLUMNA IMAGEN */}
           <div className="relative h-full min-h-[400px] flex items-center justify-center">
             <motion.div 
-                style={{ y, rotate }} // APLICAMOS EL EFECTO PARALLAX AQUÍ
+                style={{ y, rotate }}
                 className="relative z-10 w-full max-w-md"
             >
-                <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
+                <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-8 border-white bg-stone-200">
+                    {/* OPTIMIZACIÓN APLICADA: Usamos la función getOptimizedImage */}
                     <img 
-                        src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/AgusMatukana.png" 
+                        src={getOptimizedImage(imageUrl, 600)} 
                         alt="Agustín en la naturaleza"
-                        className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-1000" // Zoom out suave al hover
+                        loading="lazy"
+                        width="450" // Evita saltos de layout
+                        height="560"
+                        className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-1000"
                     />
                     
-                    {/* Overlay gradiente sutil */}
                     <div className="absolute inset-0 bg-gradient-to-t from-amber-900/40 to-transparent"></div>
                 </div>
 
-                {/* Elementos flotantes decorativos */}
                 <motion.div 
                     animate={{ y: [0, -15, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -108,7 +111,6 @@ const AboutAgustin = () => {
 
             </motion.div>
 
-            {/* Blobs de fondo animados */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] -z-10">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>

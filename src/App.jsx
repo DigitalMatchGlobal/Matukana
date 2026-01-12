@@ -1,21 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react"; // Agregamos Suspense
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import AboutAgustin from "@/components/AboutAgustin";
-import Products from "@/components/Products";
-import Therapies from "@/components/Therapies";
-import Experiences from "@/components/Experiences";
-import Gallery from "@/components/Gallery";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
-import AdminLogin from "@/components/admin/AdminLogin";
-import AdminDashboard from "@/components/admin/AdminDashboard";
+// Mantén los componentes críticos (Arriba del fold) importados normal
+import SEO from "@/components/SEO";
 import { Toaster } from "@/components/ui/toaster";
 import CustomCursor from "@/components/ui/CustomCursor";
-import SEO from "@/components/SEO";
 import { useActiveSection } from "@/lib/useActiveSection";
 
-// IDs públicos (tienen que matchear los <section id="...">)
+import AdminLogin from "@/components/admin/AdminLogin";
+import AdminDashboard from "@/components/admin/AdminDashboard";
+
+// --- LAZY LOADING (Carga diferida) ---
+// Estos componentes solo se descargarán cuando sean necesarios
+const AboutAgustin = React.lazy(() => import("@/components/AboutAgustin"));
+const Products = React.lazy(() => import("@/components/Products"));
+const Therapies = React.lazy(() => import("@/components/Therapies"));
+const Experiences = React.lazy(() => import("@/components/Experiences"));
+const Gallery = React.lazy(() => import("@/components/Gallery"));
+const Contact = React.lazy(() => import("@/components/Contact"));
+const Footer = React.lazy(() => import("@/components/Footer"));
+
+// IDs públicos
 const PUBLIC_SECTION_IDS = [
   "inicio",
   "sobre-agustin",
@@ -26,13 +31,19 @@ const PUBLIC_SECTION_IDS = [
   "contacto",
 ];
 
+// Loader simple para los huecos mientras carga el componente
+const SectionLoader = () => (
+  <div className="py-24 flex justify-center items-center">
+    <div className="w-8 h-8 border-4 border-amber-900 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
+
 function App() {
   const [isAdminRoute, setIsAdminRoute] = useState(
     window.location.hash === "#admin"
   );
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
-  // ✅ Hook SIEMPRE se ejecuta (no condicional), para cumplir Rules of Hooks
   const activeSection = useActiveSection(PUBLIC_SECTION_IDS);
 
   useEffect(() => {
@@ -89,9 +100,6 @@ function App() {
 
   const activeSEO = seoBySection[activeSection] || seoBySection.inicio;
 
-  // -------------------------
-  // Schema (válido) — NO usar WellnessCenter (da error)
-  // -------------------------
   const MATUKANA_SCHEMA = useMemo(
     () => ({
       "@context": "https://schema.org",
@@ -111,7 +119,7 @@ function App() {
         postalCode: "4400",
         addressCountry: "AR",
       },
-      priceRange: "$$", // Recomendado por Google para LocalBusiness
+      priceRange: "$$",
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
@@ -136,15 +144,12 @@ function App() {
           description="Panel de administración"
           noindex
         />
-
         <div className="noise-overlay"></div>
-
         {!isAdminLoggedIn ? (
           <AdminLogin onLogin={() => setIsAdminLoggedIn(true)} />
         ) : (
           <AdminDashboard onLogout={() => setIsAdminLoggedIn(false)} />
         )}
-
         <Toaster />
       </>
     );
@@ -168,36 +173,42 @@ function App() {
         <Header />
 
         <main>
+          {/* Hero carga INMEDIATO (No lazy) para buen SEO/LCP */}
           <section id="inicio">
             <Hero />
           </section>
 
-          <section id="sobre-agustin">
-            <AboutAgustin />
-          </section>
+          {/* El resto carga diferido con Suspense */}
+          <Suspense fallback={<SectionLoader />}>
+            <section id="sobre-agustin">
+              <AboutAgustin />
+            </section>
 
-          <section id="productos">
-            <Products />
-          </section>
+            <section id="productos">
+              <Products />
+            </section>
 
-          <section id="terapias">
-            <Therapies />
-          </section>
+            <section id="terapias">
+              <Therapies />
+            </section>
 
-          <section id="experiencias">
-            <Experiences />
-          </section>
+            <section id="experiencias">
+              <Experiences />
+            </section>
 
-          <section id="galeria">
-            <Gallery />
-          </section>
+            <section id="galeria">
+              <Gallery />
+            </section>
 
-          <section id="contacto">
-            <Contact />
-          </section>
+            <section id="contacto">
+              <Contact />
+            </section>
+          </Suspense>
         </main>
 
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
         <Toaster />
       </div>
     </>
