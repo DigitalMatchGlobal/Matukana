@@ -97,6 +97,9 @@ function App() {
       "@context": "https://schema.org",
       "@type": ["LocalBusiness", "MassageTherapist"],
       name: "Matukana",
+      image: [
+        "https://www.vivematukana.com/og-image.png"
+      ],
       url: "https://www.vivematukana.com/",
       telephone: "+5493874833177",
       sameAs: ["https://www.instagram.com/vive.matukana/"],
@@ -108,6 +111,7 @@ function App() {
         postalCode: "4400",
         addressCountry: "AR",
       },
+      priceRange: "$$", // Recomendado por Google para LocalBusiness
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
