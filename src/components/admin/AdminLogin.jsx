@@ -6,12 +6,15 @@ import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { ArrowRight, Loader2, ScanFace, CheckCircle2, Lock, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/customSupabaseClient';
 
 const AdminLogin = ({ onLogin }) => {
   const router = useRouter();
 
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle'); // idle | checking | success | error
+  const [errorMsg, setErrorMsg] = useState('');
   const { toast } = useToast();
 
   // --- LOGICA DE EFECTO 3D ---
@@ -36,33 +39,46 @@ const AdminLogin = ({ onLogin }) => {
     y.set(mouseYFromCenter / height);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setStatus('checking');
+    setErrorMsg('');
 
-    // Simulación de "Procesamiento Cuántico" ;)
+    // Autenticación real contra Supabase Auth. Antes esto comparaba la
+    // contraseña contra un string del código, en el navegador: cualquiera
+    // podía leerla en el bundle. Ver docs/MIGRACION-NEXT.md.
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (error) {
+      // No distinguimos "mail inexistente" de "contraseña incorrecta": decirlo
+      // permite averiguar qué mails tienen cuenta.
+      setErrorMsg(
+        error.message === 'Invalid login credentials'
+          ? 'Credencial inválida'
+          : 'No se pudo iniciar sesión. Probá de nuevo.'
+      );
+      setStatus('error');
+      setTimeout(() => {
+        setPassword('');
+        setStatus('idle');
+      }, 500);
+      return;
+    }
+
+    setStatus('success');
+    if (navigator.vibrate) navigator.vibrate(50);
+
     setTimeout(() => {
-        if (password === 'matukana.2026') {
-            setStatus('success');
-            // Sonido o vibración háptica si fuera móvil
-            if (navigator.vibrate) navigator.vibrate(50);
-            
-            setTimeout(() => {
-                toast({
-                    title: "Acceso Concedido",
-                    description: "Bienvenido al Sistema de Matukana.",
-                    className: "bg-stone-900 text-white border-stone-800"
-                });
-                onLogin();
-            }, 1000); // Esperar a que termine la animación de éxito
-        } else {
-            setStatus('error');
-            setTimeout(() => {
-                setPassword('');
-                setStatus('idle');
-            }, 500);
-        }
-    }, 1200); 
+      toast({
+        title: 'Acceso Concedido',
+        description: 'Bienvenido al Sistema de Matukana.',
+        className: 'bg-stone-900 text-white border-stone-800',
+      });
+      onLogin();
+    }, 1000); // deja terminar la animación de éxito
   };
 
   return (
@@ -129,7 +145,21 @@ const AdminLogin = ({ onLogin }) => {
                     </p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <div className="space-y-2 relative">
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={status === 'checking' || status === 'success'}
+                            className={`w-full px-4 py-4 bg-stone-50 border-2 rounded-xl text-center text-base focus:ring-0 focus:border-stone-900 transition-all outline-none ${status === 'error' ? 'border-red-300 bg-red-50' : 'border-stone-100'}`}
+                            placeholder="tu@email.com"
+                            autoComplete="email"
+                            required
+                            autoFocus
+                        />
+                    </div>
+
                     <div className="space-y-2 relative">
                         <input
                             type="password"
@@ -138,11 +168,12 @@ const AdminLogin = ({ onLogin }) => {
                             disabled={status === 'checking' || status === 'success'}
                             className={`w-full px-4 py-4 bg-stone-50 border-2 rounded-xl text-center text-lg tracking-[0.5em] focus:ring-0 focus:border-stone-900 transition-all outline-none placeholder:tracking-normal ${status === 'error' ? 'border-red-300 bg-red-50 animate-shake' : 'border-stone-100'}`}
                             placeholder="••••••••"
-                            autoFocus
+                            autoComplete="current-password"
+                            required
                         />
                         {status === 'error' && (
                             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-xs text-center mt-2 font-medium">
-                                Credencial Inválida
+                                {errorMsg || 'Credencial inválida'}
                             </motion.p>
                         )}
                     </div>

@@ -83,30 +83,42 @@ donde el `.env` se leía igual.
 
 | # | Tema | Por qué se dejó |
 |---|---|---|
-| 1 | 🔴 **El admin no tiene autenticación real** | Ver abajo. Es lo próximo. |
+| 1 | 🟡 **Auth del admin: hecha. Falta la RLS** | Ver abajo. Es lo próximo. |
 | 2 | Las imágenes siguen en `<img>` plano, no `next/image` | Cambia el layout visual y hay que probarlo con el cliente. `next.config.mjs` ya tiene el `remotePatterns` de Supabase listo |
 | 3 | Productos, terapias, experiencias y galería se buscan en `useEffect` | El contenido **no está en el HTML del server**. Pasarlos a server components es el próximo salto de SEO real |
 | 4 | `src/contexts/SupabaseAuthContext.jsx` es código muerto | Nadie lo importa. Sirve como base cuando se haga el login de verdad |
 | 5 | React 18, no 19 | POV Store usa 19. Se deja para converger cuando llegue el motor de tienda, no en la misma pasada |
 | 6 | `favicon.svg` y `apple-touch-icon.png` no existen en `public/` | `index.html` los enlazaba por URL absoluta; los archivos no están en el repo |
 
-### 🔴 El punto 1, en detalle
+### 🟡 El punto 1, en detalle
 
-`src/components/admin/AdminLogin.jsx` compara la contraseña **en el navegador**, contra un
-string escrito en el código (`if (password === 'matukana.2026')`). Eso significa:
+**Antes.** `AdminLogin.jsx` comparaba la contraseña **en el navegador** contra un string escrito
+en el código (`if (password === 'matukana.2026')`). Estaba en el bundle de cualquier visitante.
+Y el "login" era un `useState` que se perdía en cada refresh.
 
-- La contraseña **está en el bundle** que se descarga cualquier visitante. No es secreta.
-- Y aunque lo fuera, no protege nada: el panel escribe a Supabase con la **anon key**, así que
-  lo que realmente autoriza es la RLS. Si la RLS deja escribir a `anon`, cualquiera puede
-  escribir sin pasar por el login.
+**Ahora (hecho el 2026-09-26).**
 
-Esto **ya era así antes de la migración** — no lo introdujo este cambio, y por eso no se arregló
-acá (era una migración, no un rediseño). Pero se vuelve grave en cuanto la tienda maneje pedidos
-y plata.
+- `AdminLogin` usa `supabase.auth.signInWithPassword({ email, password })`. Se agregó campo de
+  email; el diseño (tilt 3D, animaciones de estado) quedó igual.
+- El error no distingue "mail inexistente" de "contraseña incorrecta" — decirlo permitiría
+  averiguar qué mails tienen cuenta.
+- `AdminApp` ya no guarda un booleano: lee la sesión real con `getSession()` y se suscribe a
+  `onAuthStateChange`. Efecto secundario bueno: **la sesión sobrevive al refresh** y se cae
+  sola al cerrar sesión desde otra pestaña.
+- "Salir" hace `supabase.auth.signOut()` de verdad.
 
-**Lo que hay que hacer:** usuario real en Supabase Auth para Agus, `AdminLogin` contra
-`supabase.auth.signInWithPassword`, y **auditar la RLS de `products`, `therapies`,
-`experiences`, `inquiries` y del bucket de Storage**. Lo segundo importa más que lo primero.
+**Lo que FALTA, y es lo que más pesa.**
+
+1. **Crear el usuario de Agus** en Supabase → Authentication → Users (mail real + contraseña
+   que él después cambia). Sin esto no entra nadie: ya no hay contraseña de emergencia.
+2. **Auditar la RLS.** El panel sigue hablando con la base con la **anon key**; el login hace
+   que el admin opere como `authenticated`, pero **quien autoriza es la RLS**. Si `anon` puede
+   escribir `products`, `therapies`, `experiences` o `gallery`, el login no protege nada.
+   → Script listo para correr: [`docs/auditoria-rls.sql`](auditoria-rls.sql) (diagnóstico
+   primero, propuesta de políticas comentada después).
+3. **"Olvidé mi contraseña"** no está. Requiere una ruta `/admin/reset` y verificar el envío de
+   mail del proyecto; se deja para cuando tengamos acceso al Supabase. Mientras tanto, el reset
+   se hace desde el dashboard de Supabase.
 
 ## Cómo correrlo
 
