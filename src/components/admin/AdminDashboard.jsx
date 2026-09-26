@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { LogOut, Package, Heart, Sparkles, MessageSquare, RefreshCcw, Image as ImageIcon, ExternalLink, LayoutDashboard } from 'lucide-react';
@@ -12,6 +15,8 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
 const AdminDashboard = ({ onLogout }) => {
+  const router = useRouter();
+
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("inquiries");
@@ -83,7 +88,7 @@ const AdminDashboard = ({ onLogout }) => {
   const stats = getStats();
 
   const handleBackToSite = () => {
-    window.location.hash = '';
+    router.push('/');
   };
 
   const getGreeting = () => {

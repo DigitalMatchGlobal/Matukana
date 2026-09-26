@@ -1,8 +1,13 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { ArrowUp, Instagram, Facebook, Zap, Star, MessageCircle } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 
 const Footer = () => {
+  const router = useRouter();
+
   // ⚠️ REEMPLAZA ESTO CON EL LINK DE TU AMIGO
   // Si no tienes el link corto, busca el negocio en Google Maps, dale a "Compartir" y copia ese link.
   const GOOGLE_REVIEW_LINK = "https://g.page/r/Cd2im7cmXmSGEAE/review"; 
@@ -13,7 +18,7 @@ const Footer = () => {
 
   const handleAdminClick = (e) => {
     e.preventDefault();
-    window.location.hash = 'admin';
+    router.push('/admin');
   };
 
   const NavLink = ({ target, children }) => (

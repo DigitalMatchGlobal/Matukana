@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Trash2, Save, Pencil } from "lucide-react"; // Added Pencil icon

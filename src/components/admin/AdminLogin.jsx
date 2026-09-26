@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { ArrowRight, Loader2, ScanFace, CheckCircle2, Lock, Zap } from 'lucide-react';
@@ -5,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
 const AdminLogin = ({ onLogin }) => {
+  const router = useRouter();
+
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle'); // idle | checking | success | error
   const { toast } = useToast();
@@ -163,7 +168,7 @@ const AdminLogin = ({ onLogin }) => {
                     <div className="text-center pt-2">
                         <button
                             type="button"
-                            onClick={() => window.location.hash = ''}
+                            onClick={() => router.push('/')}
                             className="text-[10px] text-stone-400 hover:text-stone-600 transition-colors uppercase tracking-widest font-semibold"
                         >
                             Cancelar y volver
