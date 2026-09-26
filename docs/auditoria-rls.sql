@@ -12,6 +12,34 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- RESULTADOS DE LA PRIMERA PASADA — 2026-09-26
+--
+-- Probado desde afuera, con la anon key, sin tocar la base (sólo lecturas).
+--
+--   LECTURA COMO `anon`:
+--     products      → 200, devuelve filas   (esperado: es el catálogo público)
+--     therapies     → 200, devuelve filas   (esperado)
+--     experiences   → 200, devuelve filas   (esperado)
+--     gallery       → 200, devuelve filas   (esperado)
+--     inquiries     → 200, devuelve filas   ⚠️ NO esperado — 56 consultas
+--
+--   Sobre `inquiries`: cualquiera con la anon key (o sea, cualquiera que abra
+--   el sitio y mire el bundle) puede listar las 56 consultas recibidas.
+--   Lo bueno: la tabla guarda sólo `type`, `item_name` y `status` — NO hay
+--   datos personales, ni nombre ni teléfono ni mail. O sea que no es una fuga
+--   de datos de clientes, pero sí deja ver qué terapias y productos consulta
+--   la gente y cuántas consultas entran. Es información del negocio de Agus
+--   y no tiene por qué leerla un tercero.
+--
+--   ESCRITURA COMO `anon`: **SIN VERIFICAR**. Probarlo desde afuera implicaba
+--   mandar UPDATE/DELETE contra la base de producción de Agus, así que no se
+--   hizo. Es lo que responden las consultas 1.1 a 1.3 de acá abajo, que se
+--   corren desde el SQL Editor sin tocar ningún dato.
+--   Hasta saberlo, hay que asumir lo peor: que `anon` puede escribir.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+
 -- ═══════════════════════════════════════════════════════════════
 -- PARTE 1 — DIAGNÓSTICO (sólo lectura, no cambia nada)
 -- ═══════════════════════════════════════════════════════════════

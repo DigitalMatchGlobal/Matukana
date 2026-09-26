@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Te invitamos al panel de Matukana</title>
+  </head>
+  <!-- stone-50 de Tailwind, el mismo fondo del sitio -->
+  <body style="margin:0; padding:0; background-color:#fafaf9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <!-- Preheader: lo que se lee en la bandeja antes de abrir -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0;">Tu acceso al panel de administración de Matukana.</div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fafaf9;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px; background-color:#ffffff; border-radius:16px; border:1px solid #e7e5e4; overflow:hidden;">
+
+            <!-- Logo -->
+            <tr>
+              <td align="center" style="padding:40px 32px 24px 32px;">
+                <img src="https://xwotrjojocxpjwalanqh.supabase.co/storage/v1/object/public/media/matukana/matukanaicon.png" width="64" height="64" alt="Matukana"
+                     style="display:block; width:64px; height:64px; object-fit:contain;" />
+              </td>
+            </tr>
+
+            <!-- Marca -->
+            <tr>
+              <td align="center" style="padding:0 32px 8px 32px;">
+                <div style="font-family:Georgia,'Times New Roman',serif; font-size:26px; font-weight:bold; color:#292524; letter-spacing:-0.5px;">
+                  Matukana
+                </div>
+                <div style="font-size:10px; font-weight:bold; color:#a8a29e; letter-spacing:2.5px; text-transform:uppercase; padding-top:6px;">
+                  Acceso al panel
+                </div>
+              </td>
+            </tr>
+
+            <!-- Contenido -->
+            <tr>
+              <td style="padding:28px 32px 8px 32px;">
+                <h1 style="margin:0 0 16px 0; font-family:Georgia,'Times New Roman',serif; font-size:20px; font-weight:bold; color:#78350f; line-height:1.4;">
+                  Tu acceso al panel está listo
+                </h1>
+                <p style="margin:0 0 20px 0; font-size:15px; line-height:1.65; color:#44403c;">
+                  Desde el panel administrás los productos, las terapias, las experiencias y la galería del sitio. Todo lo que cambies ahí se ve en vivematukana.com.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Botón -->
+            <tr>
+              <td align="center" style="padding:8px 32px 28px 32px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" style="background-color:#78350f; border-radius:12px;">
+                      <a href="{{ .ConfirmationURL }}"
+                         style="display:inline-block; padding:15px 34px; font-size:14px; font-weight:bold; color:#ffffff; text-decoration:none; letter-spacing:0.5px;">
+                        CREAR MI CONTRASEÑA
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Nota al pie del contenido -->
+            <tr>
+              <td style="padding:0 32px 32px 32px;">
+                <p style="margin:0 0 12px 0; font-size:13px; line-height:1.6; color:#78716c;">
+                  Este enlace te va a pedir que elijas una contraseña. Es de un solo uso y vence en 24 horas.
+                </p>
+                <p style="margin:0; font-size:12px; line-height:1.6; color:#a8a29e;">
+                  Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br />
+                  <span style="color:#78716c; word-break:break-all;">{{ .ConfirmationURL }}</span>
+                </p>
+              </td>
+            </tr>
+
+            <!-- Separador -->
+            <tr>
+              <td style="padding:0 32px;">
+                <div style="height:1px; background-color:#e7e5e4;"></div>
+              </td>
+            </tr>
+
+            <!-- Pie -->
+            <tr>
+              <td align="center" style="padding:24px 32px 32px 32px;">
+                <p style="margin:0 0 6px 0; font-size:12px; color:#a8a29e; line-height:1.6;">
+                  Ameghino 653 · Hotel Inkai, 2° piso · Salta, Argentina<br />
+                  Lunes a viernes de 12 a 20 hs
+                </p>
+                <p style="margin:0; font-size:12px;">
+                  <a href="https://vivematukana.com" style="color:#78350f; text-decoration:none; font-weight:bold;">vivematukana.com</a>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+          <p style="margin:20px 0 0 0; font-size:11px; color:#d6d3d1;">
+            Medicina natural, terapias y experiencias · Salta
+          </p>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -116,7 +116,14 @@ Y el "login" era un `useState` que se perdía en cada refresh.
    escribir `products`, `therapies`, `experiences` o `gallery`, el login no protege nada.
    → Script listo para correr: [`docs/auditoria-rls.sql`](auditoria-rls.sql) (diagnóstico
    primero, propuesta de políticas comentada después).
-3. **"Olvidé mi contraseña"** no está. Requiere una ruta `/admin/reset` y verificar el envío de
+   **Primera pasada ya hecha (2026-09-26)**: `anon` puede **leer `inquiries`** — las 56
+   consultas recibidas. Sin datos personales (sólo tipo, ítem y estado), pero es información
+   del negocio. La escritura quedó **sin verificar**: probarlo desde afuera era mandar
+   UPDATE/DELETE contra la base de producción.
+3. **Las plantillas de correo de Supabase** están sin marca (diseño genérico en inglés).
+   Listas para pegar en `docs/email-templates/` — y ojo, el diseño no cambia el remitente:
+   sin SMTP propio los mails salen desde `noreply@mail.app.supabase.io`.
+4. **"Olvidé mi contraseña"** no está. Requiere una ruta `/admin/reset` y verificar el envío de
    mail del proyecto; se deja para cuando tengamos acceso al Supabase. Mientras tanto, el reset
    se hace desde el dashboard de Supabase.
 
