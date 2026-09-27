@@ -63,7 +63,7 @@ asuntos en castellano), cargadas por Management API. Fuente en [`email-templates
 | 1 | ~~Deploy del Next a Vercel~~ ✅ **hecho el 2026-09-27** | — |
 | 2 | **Resend**: cuenta + verificar el dominio (SPF/DKIM) | Que los correos salgan con remitente propio. Junto con los de pedido, no antes |
 | 3 | ~~Validación visual~~ ✅ hecha en el preview | — |
-| 4 | Que Agus cambie su contraseña temporal | — |
+| 4 | Que Agus cambie su contraseña temporal | Ya hay botón **"Contraseña"** en el header del panel |
 | 5 | **Mover el proyecto al Vercel Pro**: hoy está en un team **Hobby**, que prohíbe el uso comercial | Riesgo de términos de servicio, más cuando la tienda cobre |
 
 ### Sobre el punto 2 — el correo
@@ -124,7 +124,10 @@ construir**, no algo que venga con el motor.
 3. `SupabaseAuthContext.jsx` es código muerto (nadie lo importa)
 4. React 18, no 19 (POV usa 19) — converger cuando llegue el motor de tienda
 5. `favicon.svg` y `apple-touch-icon.png` referenciados pero ausentes de `public/`
-6. "Olvidé mi contraseña" no está implementado (requiere ruta `/admin/reset`)
+6. "Olvidé mi contraseña" no está implementado (requiere ruta `/admin/reset` **y SMTP**).
+   Sí existe el **cambio de contraseña desde adentro del panel**
+   (`src/components/admin/CambiarPassword.jsx`), que no manda correo ni depende del SMTP.
+   Si Agus se la olvida estando afuera, se resetea desde el dashboard de Supabase.
 
 ---
 

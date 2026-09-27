@@ -11,6 +11,7 @@ import ProductManager from '@/components/admin/ProductManager';
 import TherapyManager from '@/components/admin/TherapyManager';
 import ExperienceManager from '@/components/admin/ExperienceManager';
 import GalleryManager from '@/components/admin/GalleryManager';
+import CambiarPassword from '@/components/admin/CambiarPassword';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -129,6 +130,7 @@ const AdminDashboard = ({ onLogout }) => {
               <ExternalLink size={16} className="mr-2" />
               Ver Sitio
             </Button>
+            <CambiarPassword />
             <div className="h-6 w-px bg-stone-200 hidden md:block mx-1"></div>
             <Button
               onClick={onLogout}
