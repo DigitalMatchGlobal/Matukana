@@ -64,19 +64,32 @@ asuntos en castellano), cargadas por Management API. Fuente en [`email-templates
 | 3 | Validación visual del sitio por Gonzalo | — |
 | 4 | Que Agus cambie su contraseña temporal | — |
 
-### Sobre el punto 2
-La casilla `info@vivematukana.com` ya existe, pero **en Supabase no hay SMTP configurado**
-(`smtp_host`, `smtp_user`, `smtp_pass` vacíos). Hasta conectarlo, todo correo sale desde
-`noreply@mail.app.supabase.io`, con límite bajo y entrega mediocre.
+### Sobre el punto 2 — el correo, y una distinción que importa
 
-Para configurarlo hacen falta cuatro datos del proveedor de esa casilla:
-`smtp_host`, `smtp_port`, `smtp_user` y `smtp_pass`. Más el remitente
-(`smtp_admin_email = info@vivematukana.com`) y el nombre visible (`smtp_sender_name = Matukana`).
+La casilla `info@vivematukana.com` está en **Spacemail** y tiene SMTP habilitado:
 
-Si la casilla es de **Resend**: host `smtp.resend.com`, puerto `465`, usuario `resend`,
-contraseña = la API key, y el dominio `vivematukana.com` tiene que estar verificado allá
-(registros SPF y DKIM en el DNS). Si es de **Hostinger o Google Workspace**, cambian host,
-puerto y usuario.
+| | |
+|---|---|
+| host | `mail.spacemail.com` |
+| puerto | `465` (SSL) |
+| usuario | `info@vivematukana.com` |
+| contraseña | la de la casilla — **falta para poder configurarlo** |
+
+En Supabase `smtp_host`, `smtp_user` y `smtp_pass` siguen **vacíos**, así que todo correo sale
+todavía desde `noreply@mail.app.supabase.io`.
+
+**⚠️ Esto NO cubre los correos de pedido.** El SMTP de Supabase Auth manda **sólo** correos de
+autenticación: recuperar contraseña, invitación, confirmar dirección, magic link. Nada más.
+
+**Los correos de confirmación de compra no existen todavía en ningún lado.** Se verificó:
+POV Store **no manda un solo correo** — cero dependencias de envío en el proyecto. El comprador
+ve la página de confirmación y listo. O sea que "te llega el mail con tu pedido" es una función
+**a construir**, no algo que venga con el motor.
+
+Cuando se construya, conviene que **no** salga por el SMTP de la casilla: un buzón común tiene
+límites bajos de envío y mala entrega para correo transaccional. Va por un proveedor
+transaccional (Resend) usando el mismo dominio, con SPF y DKIM en el DNS. El SMTP de Spacemail
+alcanza de sobra para los correos de Auth, que son un puñado por mes.
 
 ---
 
