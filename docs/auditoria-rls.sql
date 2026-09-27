@@ -1,4 +1,63 @@
 -- ─────────────────────────────────────────────────────────────────────────────
+-- ESTADO: APLICADO EL 2026-09-27 (tablas) · STORAGE PENDIENTE
+--
+-- Lo que se encontró (y era peor de lo que se suponía):
+--   · RLS **APAGADA** en las 5 tablas.
+--   · `anon` tenía SELECT, INSERT, UPDATE, DELETE y **TRUNCATE** en todas.
+--   · **0 políticas** en todo el esquema `public`.
+--   · Storage: una sola política, "Master Policy Public", rol `public`, cmd ALL.
+--   En criollo: cualquiera con la anon key (que es pública por diseño, va en el
+--   bundle del sitio) podía borrar o vaciar el catálogo entero desde la consola
+--   del navegador. Sin login.
+--
+-- Lo que se aplicó (verificado después):
+--   · RLS ACTIVA en las 5 tablas.
+--   · anon quedó con: SELECT en products/therapies/experiences/gallery,
+--     INSERT en inquiries. Nada más. Sin TRUNCATE en ninguna.
+--   · 12 políticas: lectura pública del catálogo, escritura sólo `authenticated`;
+--     inquiries inserta el público, lee/actualiza/borra sólo el admin.
+--   · Verificado desde afuera con la anon key: el catálogo se lee (10 productos,
+--     9 terapias, 6 experiencias, 5 fotos) y `inquiries` devuelve
+--     401 "permission denied". El sitio público quedó intacto.
+--
+-- ⚠️ CONSECUENCIA BUSCADA: el panel viejo publicado (build de Vite en
+--    vivematukana.com) **ya no puede editar**, porque escribía como `anon`.
+--    Se edita desde la app Next con login real hasta que esa se deploye.
+--
+-- ⚠️ LO QUE FALTA: el blindaje de **Storage** (abajo, PARTE 3). Hoy sigue
+--    abierto: cualquiera puede subir o borrar archivos del bucket `media`.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+
+-- ═══════════════════════════════════════════════════════════════
+-- PARTE 3 — STORAGE: PENDIENTE DE APLICAR
+-- Pegar tal cual en el SQL Editor.
+-- ═══════════════════════════════════════════════════════════════
+
+-- Hoy el bucket `media` tiene una única política ("Master Policy Public",
+-- rol `public`, comando ALL) y no tiene techo: entra cualquier peso y
+-- cualquier formato. Esto lo deja en: mira todo el mundo, sube sólo el admin.
+
+DROP POLICY IF EXISTS "Master Policy Public" ON storage.objects;
+
+DROP POLICY IF EXISTS media_select_public ON storage.objects;
+CREATE POLICY media_select_public ON storage.objects
+  FOR SELECT TO anon, authenticated USING (bucket_id = 'media');
+
+DROP POLICY IF EXISTS media_write_admin ON storage.objects;
+CREATE POLICY media_write_admin ON storage.objects
+  FOR ALL TO authenticated USING (bucket_id = 'media') WITH CHECK (bucket_id = 'media');
+
+UPDATE storage.buckets
+SET file_size_limit = 5242880,  -- 5 MB
+    allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp','image/avif','image/gif']
+WHERE id = 'media';
+
+-- Después de aplicarlo: entrar a /admin logueado y subir una imagen desde
+-- el gestor de galería. Si sube, quedó bien.
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- AUDITORÍA DE RLS — Matukana
 --
 -- Por qué: el panel de /admin escribe a Supabase con la **anon key**, la misma
