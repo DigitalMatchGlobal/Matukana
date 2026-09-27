@@ -32,6 +32,16 @@
 --   la gente y cuántas consultas entran. Es información del negocio de Agus
 --   y no tiene por qué leerla un tercero.
 --
+--   INVENTARIO (con service_role, 2026-09-27):
+--     · public tiene exactamente 5 tablas: products, therapies, experiences,
+--       gallery, inquiries. No hay funciones RPC. Base chica y limpia.
+--     · Storage: un solo bucket, `media`, PÚBLICO, **sin límite de tamaño de
+--       archivo y sin restricción de tipo MIME**. Aunque la subida quede sólo
+--       para el admin, conviene ponerle techo (ver 2.1 abajo): hoy un archivo
+--       de cualquier peso y cualquier formato entra.
+--     · Auth: **0 usuarios** antes de hoy — confirma que el panel nunca usó
+--       autenticación real. Ahora hay 1 (el de Agus).
+--
 --   ESCRITURA COMO `anon`: **SIN VERIFICAR**. Probarlo desde afuera implicaba
 --   mandar UPDATE/DELETE contra la base de producción de Agus, así que no se
 --   hizo. Es lo que responden las consultas 1.1 a 1.3 de acá abajo, que se
@@ -158,6 +168,17 @@ DROP POLICY IF EXISTS media_write_admin ON storage.objects;
 CREATE POLICY media_write_admin ON storage.objects
   FOR ALL TO authenticated USING (bucket_id = 'media') WITH CHECK (bucket_id = 'media');
 */
+
+-- ── 2.1 Storage: ponerle techo al bucket ──
+-- Hoy `media` acepta archivos de cualquier peso y cualquier tipo. Esto se
+-- cambia desde el dashboard (Storage → media → Settings) o así:
+/*
+UPDATE storage.buckets
+SET file_size_limit = 5242880,  -- 5 MB
+    allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/avif']
+WHERE id = 'media';
+*/
+
 
 -- ── Después de aplicar, verificar A MANO (esto es lo que cuenta) ──
 --  1. Sitio público en ventana de incógnito: productos, terapias,

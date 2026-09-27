@@ -109,8 +109,10 @@ Y el "login" era un `useState` que se perdía en cada refresh.
 
 **Lo que FALTA, y es lo que más pesa.**
 
-1. **Crear el usuario de Agus** en Supabase → Authentication → Users (mail real + contraseña
-   que él después cambia). Sin esto no entra nadie: ya no hay contraseña de emergencia.
+1. ~~Crear el usuario de Agus~~ ✅ **hecho el 2026-09-27**: `kumikeagustin@gmail.com`, creado
+   con la Admin API y `email_confirm: true`, **sin mandarle ningún correo**. Login verificado
+   punta a punta (contraseña correcta → token `authenticated`; incorrecta → rechazada).
+   Antes de esto Auth tenía **0 usuarios**. La contraseña es temporal: que la cambie.
 2. **Auditar la RLS.** El panel sigue hablando con la base con la **anon key**; el login hace
    que el admin opere como `authenticated`, pero **quien autoriza es la RLS**. Si `anon` puede
    escribir `products`, `therapies`, `experiences` o `gallery`, el login no protege nada.
