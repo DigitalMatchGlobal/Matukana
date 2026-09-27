@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- ESTADO: APLICADO EL 2026-09-27 (tablas) · STORAGE PENDIENTE
+-- ESTADO: CERRADO EL 2026-09-27 — tablas y Storage blindados y verificados
 --
 -- Lo que se encontró (y era peor de lo que se suponía):
 --   · RLS **APAGADA** en las 5 tablas.
@@ -24,19 +24,26 @@
 --    vivematukana.com) **ya no puede editar**, porque escribía como `anon`.
 --    Se edita desde la app Next con login real hasta que esa se deploye.
 --
--- ⚠️ LO QUE FALTA: el blindaje de **Storage** (abajo, PARTE 3). Hoy sigue
---    abierto: cualquiera puede subir o borrar archivos del bucket `media`.
+-- Storage (aplicado el 2026-09-27, verificado):
+--   · Se eliminó "Master Policy Public". Quedaron dos políticas:
+--     `media_select_public` (SELECT, anon+authenticated) y
+--     `media_write_admin` (ALL, sólo authenticated).
+--   · Bucket `media`: techo de 5 MB y sólo imágenes
+--     (jpeg, png, webp, avif, gif). Sigue público para LECTURA, que es lo
+--     que corresponde: las fotos del catálogo se ven sin login.
+--   · Verificado desde afuera: el logo y las imágenes de la galería
+--     siguen devolviendo HTTP 200. El sitio no se rompió.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 
 -- ═══════════════════════════════════════════════════════════════
--- PARTE 3 — STORAGE: PENDIENTE DE APLICAR
--- Pegar tal cual en el SQL Editor.
+-- PARTE 3 — STORAGE: ✅ APLICADO EL 2026-09-27
+-- Se deja el SQL como referencia (es el mismo que va en el template).
 -- ═══════════════════════════════════════════════════════════════
 
--- Hoy el bucket `media` tiene una única política ("Master Policy Public",
--- rol `public`, comando ALL) y no tiene techo: entra cualquier peso y
--- cualquier formato. Esto lo deja en: mira todo el mundo, sube sólo el admin.
+-- Antes: el bucket `media` tenía una única política ("Master Policy Public",
+-- rol `public`, comando ALL) y ningún techo: entraba cualquier peso y
+-- cualquier formato. Ahora: mira todo el mundo, sube sólo el admin.
 
 DROP POLICY IF EXISTS "Master Policy Public" ON storage.objects;
 

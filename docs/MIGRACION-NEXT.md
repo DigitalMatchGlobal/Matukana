@@ -113,18 +113,25 @@ Y el "login" era un `useState` que se perdía en cada refresh.
    con la Admin API y `email_confirm: true`, **sin mandarle ningún correo**. Login verificado
    punta a punta (contraseña correcta → token `authenticated`; incorrecta → rechazada).
    Antes de esto Auth tenía **0 usuarios**. La contraseña es temporal: que la cambie.
-2. **Auditar la RLS.** El panel sigue hablando con la base con la **anon key**; el login hace
+2. ~~**Auditar la RLS.**~~ ✅ **cerrado el 2026-09-27** — ver abajo. El panel sigue hablando con la base con la **anon key**; el login hace
    que el admin opere como `authenticated`, pero **quien autoriza es la RLS**. Si `anon` puede
    escribir `products`, `therapies`, `experiences` o `gallery`, el login no protege nada.
    → Script listo para correr: [`docs/auditoria-rls.sql`](auditoria-rls.sql) (diagnóstico
    primero, propuesta de políticas comentada después).
-   **Primera pasada ya hecha (2026-09-26)**: `anon` puede **leer `inquiries`** — las 56
-   consultas recibidas. Sin datos personales (sólo tipo, ítem y estado), pero es información
-   del negocio. La escritura quedó **sin verificar**: probarlo desde afuera era mandar
-   UPDATE/DELETE contra la base de producción.
-3. **Las plantillas de correo de Supabase** están sin marca (diseño genérico en inglés).
-   Listas para pegar en `docs/email-templates/` — y ojo, el diseño no cambia el remitente:
-   sin SMTP propio los mails salen desde `noreply@mail.app.supabase.io`.
+   **Resultado:** la base estaba **completamente abierta** — RLS apagada en las 5 tablas,
+   0 políticas, y `anon` con SELECT/INSERT/UPDATE/DELETE/**TRUNCATE** en todas. Storage con
+   una sola política `ALL` para el rol `public` y sin techo.
+   **Ya está cerrado y verificado:** RLS activa, 12 políticas en `public` + 2 en `storage`,
+   `anon` reducido a leer el catálogo e insertar en `inquiries`, bucket con techo de 5 MB y
+   sólo imágenes. El sitio público quedó intacto (catálogo e imágenes siguen cargando).
+   ⚠️ **Efecto buscado:** el panel viejo publicado ya no puede editar — escribía como `anon`.
+3. ~~**Las plantillas de correo**~~ ✅ **cargadas el 2026-09-27** por Management API, con
+   asuntos en castellano. Fuente en `docs/email-templates/`.
+   ⚠️ Sigue faltando **SMTP propio**: el diseño no cambia el remitente, los mails salen
+   desde `noreply@mail.app.supabase.io`, con límite bajo y entrega mediocre.
+   ⚠️ `site_url` ya quedó en `https://vivematukana.com`, pero **`uri_allow_list` está vacío**:
+   un link de recuperación abierto en desarrollo no va a poder volver a `localhost:3000`.
+   Agregar `http://localhost:3000/**` cuando se trabaje ese flujo.
 4. **"Olvidé mi contraseña"** no está. Requiere una ruta `/admin/reset` y verificar el envío de
    mail del proyecto; se deja para cuando tengamos acceso al Supabase. Mientras tanto, el reset
    se hace desde el dashboard de Supabase.
