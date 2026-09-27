@@ -60,36 +60,57 @@ asuntos en castellano), cargadas por Management API. Fuente en [`email-templates
 | # | Qué | Bloquea |
 |---|---|---|
 | 1 | **Deploy del Next a Vercel** | Que Agus vuelva a tener panel. Es lo más urgente |
-| 2 | **Conectar el SMTP de `info@vivematukana.com`** | Que los correos salgan con remitente propio |
+| 2 | **Resend**: cuenta + verificar el dominio (SPF/DKIM) | Que los correos salgan con remitente propio. Junto con los de pedido, no antes |
 | 3 | Validación visual del sitio por Gonzalo | — |
 | 4 | Que Agus cambie su contraseña temporal | — |
 
-### Sobre el punto 2 — el correo, y una distinción que importa
+### Sobre el punto 2 — el correo
 
-La casilla `info@vivematukana.com` está en **Spacemail** y tiene SMTP habilitado:
+Acá hay **dos decisiones distintas** que conviene no mezclar:
 
-| | |
-|---|---|
-| host | `mail.spacemail.com` |
-| puerto | `465` (SSL) |
-| usuario | `info@vivematukana.com` |
-| contraseña | la de la casilla — **falta para poder configurarlo** |
+#### A. Dónde LEE Agus su correo — no es asunto del proyecto
 
-En Supabase `smtp_host`, `smtp_user` y `smtp_pass` siguen **vacíos**, así que todo correo sale
-todavía desde `noreply@mail.app.supabase.io`.
+`info@vivematukana.com` vive en **Spacemail** (Spaceship). Que Agus lo lea desde el webmail de
+Spacemail, desde Gmail con reenvío, o mudando el dominio a Google Workspace **no afecta en nada
+al sitio ni a la tienda**. Es comodidad suya y no bloquea ningún trabajo.
 
-**⚠️ Esto NO cubre los correos de pedido.** El SMTP de Supabase Auth manda **sólo** correos de
-autenticación: recuperar contraseña, invitación, confirmar dirección, magic link. Nada más.
+Si pregunta: el reenvío a un Gmail + "Enviar como" con el SMTP de Spacemail sale **$0**, es
+reversible y le da la app de Gmail. Workspace (~USD 6–7/usuario/mes) sólo se justifica si quiere
+además Calendar, Meet y Drive corporativos. **Decisión de Agus, no nuestra.**
 
-**Los correos de confirmación de compra no existen todavía en ningún lado.** Se verificó:
-POV Store **no manda un solo correo** — cero dependencias de envío en el proyecto. El comprador
-ve la página de confirmación y listo. O sea que "te llega el mail con tu pedido" es una función
-**a construir**, no algo que venga con el motor.
+#### B. Cómo ENVÍA correo la aplicación — esto sí es nuestro
 
-Cuando se construya, conviene que **no** salga por el SMTP de la casilla: un buzón común tiene
-límites bajos de envío y mala entrega para correo transaccional. Va por un proveedor
-transaccional (Resend) usando el mismo dominio, con SPF y DKIM en el DNS. El SMTP de Spacemail
-alcanza de sobra para los correos de Auth, que son un puñado por mes.
+Dos tipos, y hoy **ninguno de los dos está en el camino crítico**:
+
+| Tipo | Ejemplos | Urgencia real |
+|---|---|---|
+| **Auth** (Supabase) | recuperar contraseña, invitación | Ninguna: hay un solo usuario y su contraseña se resetea desde el dashboard |
+| **Pedido** (la app) | confirmación al comprador, aviso de venta al dueño | Cuando exista la tienda. **No está construido** |
+
+**Decisión tomada (2026-09-27): el envío va por Resend, no por el SMTP de Spacemail.**
+
+Se evaluó conectar Supabase Auth al SMTP de Spacemail (`mail.spacemail.com:465`, usuario
+`info@vivematukana.com`). Funciona y son dos minutos, pero se descartó por tres razones:
+
+1. **Ata el envío al buzón.** Si Agus mañana se muda a Workspace o cambia de proveedor, el
+   envío de la app se rompe y hay que rehacerlo.
+2. **Un buzón común no es para correo transaccional**: límites bajos y entrega mediocre.
+   Terminás en spam justo con el mail que confirma que alguien pagó.
+3. **Vamos a necesitar Resend igual** para los correos de pedido. Hacer el trabajo de DNS una
+   sola vez y apuntar ahí *ambos* tipos de correo es una configuración, no dos.
+
+Lo que implica, para cuando se haga: cuenta de Resend, verificar `vivematukana.com` (registros
+TXT/CNAME para SPF y DKIM en el DNS de Spaceship) y apuntar el SMTP de Supabase a
+`smtp.resend.com`. Buena práctica: usar un subdominio de envío (`mail.vivematukana.com`) para
+aislar la reputación de entrega de la casilla donde Agus lee.
+
+**Mientras tanto**: los correos de Auth salen desde `noreply@mail.app.supabase.io`. Como no hay
+ningún flujo que los dispare hoy, no molesta a nadie.
+
+⚠️ **Los correos de pedido no existen todavía en ningún lado.** Se verificó: POV Store **no
+manda un solo correo** — cero dependencias de envío. El comprador ve la página de confirmación
+y listo; el dueño no se entera de la venta salvo que mire el panel. Es una función **a
+construir**, no algo que venga con el motor.
 
 ---
 
