@@ -6,21 +6,22 @@
 > Correos → [`email-templates/README.md`](email-templates/README.md) ·
 > Plan de la base de tiendas → `/dev/TIENDA-BASE`
 
-**Última actualización: 2026-09-27**
+**Última actualización: 2026-09-27** — 🟢 **EN PRODUCCIÓN**
 
 ---
 
 ## Dónde estamos
 
-El sitio está **migrado a Next 15 y con la base blindada**, pero **todavía no deployado**.
-Lo publicado en `vivematukana.com` sigue siendo el build viejo de Vite, y ese panel **ya no
-puede editar** (escribía como `anon`, y `anon` perdió la escritura). Esa es la única deuda
-operativa con consecuencia real hoy: **Agus no tiene panel usable hasta el deploy.**
+🟢 **El sitio Next está en producción en `vivematukana.com`.** Mergeado a `main` y deployado el
+2026-09-27. Verificado en vivo: sirve `/_next/static` (ya no el build de Vite), el HTML trae las
+7 secciones y el JSON-LD, `/admin` responde con `noindex` real, la fuente se sirve del propio
+dominio.
 
-Mientras tanto se edita desde `npm run dev` → `localhost:3000/admin`, que entra con login
-real y trabaja contra la misma base de producción.
+Agus validó el preview completo antes del merge: catálogo, login, edición y **subida de imagen
+a Storage con usuario autenticado** — que era la primera vez que se ejercitaba el blindaje
+aplicado el día anterior.
 
----
+**El panel viejo ya no existe.** Agus tiene su panel en `vivematukana.com/admin`, con login real.
 
 ## Hecho
 
@@ -59,10 +60,11 @@ asuntos en castellano), cargadas por Management API. Fuente en [`email-templates
 
 | # | Qué | Bloquea |
 |---|---|---|
-| 1 | **Deploy del Next a Vercel** | Que Agus vuelva a tener panel. Es lo más urgente |
+| 1 | ~~Deploy del Next a Vercel~~ ✅ **hecho el 2026-09-27** | — |
 | 2 | **Resend**: cuenta + verificar el dominio (SPF/DKIM) | Que los correos salgan con remitente propio. Junto con los de pedido, no antes |
-| 3 | Validación visual del sitio por Gonzalo | — |
+| 3 | ~~Validación visual~~ ✅ hecha en el preview | — |
 | 4 | Que Agus cambie su contraseña temporal | — |
+| 5 | **Mover el proyecto al Vercel Pro**: hoy está en un team **Hobby**, que prohíbe el uso comercial | Riesgo de términos de servicio, más cuando la tienda cobre |
 
 ### Sobre el punto 2 — el correo
 
@@ -126,7 +128,7 @@ construir**, no algo que venga con el motor.
 
 ---
 
-## Lo que viene después del deploy
+## Lo que viene ahora
 
 La tienda: portar el motor de POV Store con **MercadoPago Argentina**.
 Alcance decidido: **sin agenda** — la disponibilidad de terapias y experiencias se coordina por
