@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -25,11 +27,6 @@ const Header = () => {
 
   const handleNavClick = (href) => {
     setIsMenuOpen(false);
-
-    // Si estás en #admin por alguna razón, limpiamos el hash antes de navegar
-    if (window.location.hash === "#admin") {
-      window.location.hash = "";
-    }
 
     setTimeout(() => {
       const element = document.querySelector(href);

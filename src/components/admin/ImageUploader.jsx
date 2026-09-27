@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Plus, X, ArrowLeft, ArrowRight, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

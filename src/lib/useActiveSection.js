@@ -1,3 +1,5 @@
+'use client';
+
 // C:\Projects\Matukana\src\lib\useActiveSection.js
 import { useEffect, useMemo, useState } from "react";
 

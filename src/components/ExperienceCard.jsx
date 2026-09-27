@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Calendar, Clock, Info, X, Sparkles, RotateCw, MapPin, Users } from 'lucide-react';
