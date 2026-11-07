@@ -1,109 +1,159 @@
-# Plan de la tienda — cuánto hay que refactorizar
+# Plan de la tienda
 
-Evaluación hecha el 2026-09-27, comparando el esquema real de Matukana contra el motor
-de POV Store. Alcance decidido: **sin agenda** (la disponibilidad se coordina por WhatsApp
-y después se paga).
-
----
-
-## La respuesta corta
-
-**El backend de POV se reusa casi entero. Lo que hay que refactorizar es el modelo de datos
-de Matukana, que hoy no puede vender.** No es trabajo de diseño ni de checkout: es de catálogo.
+Actualizado el **2026-11-07** con las respuestas de Agus. Reemplaza la versión del 2026-09-27,
+que asumía que se venderían también terapias y experiencias.
 
 ---
 
-## El problema de fondo: hoy nada es vendible
+## Lo que Agus decidió
 
-Esquema actual, tal como está en la base:
+> *"Los productos son la papa y es lo único que se puede vender o cobrar al instante."*
+> *"La terapia no vamos a hacer que la paguen. Las excursiones tampoco, todo con consulta previa."*
 
-| Tabla | Filas | Campo de precio |
-|---|---|---|
-| `products` | 10 | `price` **`text`** |
-| `therapies` | 9 | **no tiene** |
-| `experiences` | 6 | **no tiene** |
-| `gallery` | 5 | no aplica |
+**Se cobra online: sólo los productos.** Terapias y caminatas siguen como hoy — consulta por
+WhatsApp y se arregla con él. Lo que pide para esas dos es **más consultas**, no un carrito.
 
-Tres cosas rompen el checkout antes de empezar:
+Esto **achica la tienda a la mitad** respecto del plan anterior: no hay que modelar servicios
+vendibles, ni seña, ni fecha a confirmar, ni precio por cantidad de personas.
 
-1. **`price` es texto.** Hoy guarda cosas como `"$ 15.000"`. No se puede sumar un carrito con
-   eso, ni mandarle un total a MercadoPago, ni calcular un envío.
-2. **Terapias y experiencias no tienen precio.** Son justo lo que más vende Matukana y no
-   existen como algo cobrable.
-3. **No hay órdenes.** Ni `orders`, ni `order_items`, ni carrito. Eso viene entero de POV.
+> ⚠ **Un punto a confirmar con él.** En la primera respuesta dijo *"si podemos vender las
+> terapias pero CON FECHA A CONFIRMAR previa consulta"*, y más tarde cerró con *"la terapia no
+> vamos a hacer que la paguen"*. Tomamos lo segundo, que es más tajante y más reciente.
+> Conviene confirmárselo en una línea antes de arrancar.
+
+### Envíos
+
+| Caso | Qué pasa |
+|---|---|
+| Ciudad de Salta | **Envío gratis** (lo lleva él, un cadete, o lo pasan a buscar por Ameghino 653) |
+| Resto del país | **Lo paga el cliente**. Correo Argentino o Andreani. Referencia que dio: ~$30.000 por un bulto de 8 a 10 productos |
+| Compra mayor a **$300.000** | **Envío gratis** a todo el país |
+| Exterior | **No se envía.** Si quieren, mandan a alguien a buscarlo |
+
+**El problema a resolver:** *"según tarifa de la empresa que se encargue"* no se puede cobrar en
+un checkout. La web tiene que decir un número **antes** de que la persona pague.
+
+**Propuesta:** una tarifa plana fuera de Salta (los ~$30.000 que él mismo estimó), gratis dentro
+de Salta, y gratis arriba de $300.000. Es un número que se cambia en un campo de configuración
+cuando el correo aumente. **Falta que Agus confirme ese número.**
+
+Y su frase ordena la prioridad: *"eso no nos tiene que frenar, hay que vender y cobrar los
+productos"*. Si el número lo traba, se sale con "sólo retiro + Salta gratis" y el envío al
+interior se suma después.
+
+### Stock
+
+> *"Siempre hay stock de todos los productos. Mínimo 20 de c/u."*
+
+**No hace falta control de stock.** No se muestra cantidad, no se bloquea la venta, no hay
+"últimas unidades". Una cosa menos que mantener y un motivo menos de venta perdida.
+
+### Precios
+
+- **Productos: los que están, están OK.** No se actualizan — *"no actualicé todavía para que la
+  gente se anime"*.
+- **Terapias y caminatas:** como no se cobran online, no hacen falta en la base para vender.
+  Sí conviene mostrarlos para que la consulta llegue mejor filtrada.
+- **Caminatas: el precio es relativo y él lo sabe.** Día entero ~$200.000 (hasta 2–3 personas);
+  3 h con auto $80.000–$120.000; 6 h en Cachi $150.000; grupo de 10 ~$600.000 ($60.000 por
+  persona); 20 personas ~$900.000–$1.000.000.
+  **Se ofreció a armar dos excursiones con precio, horas y cupo fijos** *"como para darle
+  estructura"*. **Hay que tomarle esa oferta**: dos excursiones con precio publicado convierten
+  mucho mejor que un "consultar".
 
 ---
 
-## La decisión de arquitectura: un solo catálogo, no tres
+## Lo otro que pidió Agus, y que vale tanto como la tienda
 
-Hoy son tres tablas con tres formas distintas. El checkout, el carrito, `order_items`, el
-descuento de stock y la preferencia de MercadoPago **se apoyan todos sobre un catálogo**.
-Mantener tres tipos separados significa escribir y mantener el checkout tres veces.
+> *"La gente que entra está viendo los productos y después tiene que seguir bajando para ver los
+> servicios y seguir bajando para ver la camioneta. Quizá podemos hacer tres botones: productos,
+> servicios y caminatas."*
 
-**Propuesta:** una tabla `products` (la de POV) con un campo `item_type`:
+Tiene razón y hay una coincidencia afortunada: **esto es exactamente la deuda de SEO que quedó
+parada en la migración.** Hoy el sitio es una sola página larga; las secciones existen pero no
+son direcciones propias.
 
-| `item_type` | Qué es | Stock | Cómo se entrega |
-|---|---|---|---|
-| `producto` | aceites, ungüentos | sí, se descuenta | envío o retiro |
-| `terapia` | masajes, sesiones | **no** | se coordina por WhatsApp |
-| `experiencia` | caminatas, sahumos | **cupo** (opcional) | fecha ya en `experiences.date` |
+**Propuesta:** `/productos`, `/terapias` y `/experiencias` como rutas reales, con los tres
+botones arriba. Eso le da:
 
-`therapies` y `experiences` **no se borran**: siguen alimentando las secciones del sitio.
-Lo que se agrega es la fila vendible, con su precio numérico y su `slug`.
+- lo que pidió: entrar directo a lo que a cada uno le interesa;
+- un link para mandar por WhatsApp a cada cosa;
+- páginas que Google puede indexar por separado — hoy todo compite por una sola;
+- y los textos de SEO de cada sección **ya están escritos y guardados** en
+  `src/lib/seoBySection.js`, esperando justo esto.
 
-> Alternativa evaluada y descartada: dejar las tres tablas y hacer un checkout que sepa de
-> cada una. Triplica la superficie del carrito y de `order_items` para ahorrar una migración
-> de datos de 15 filas. No conviene.
+Además deja el terreno listo para la tienda: el checkout necesita que cada producto tenga su
+propia dirección.
 
 ---
 
-## Qué se trae de POV tal cual
+## Qué hay que hacer
 
-Lo que ya está resuelto y probado en producción:
-
-- `create-order` con **idempotencia** y RPC transaccional
-- `mp-preference` + `mp-webhook` con **verificación de firma HMAC**
-- Stock-once (que no se descuente dos veces si el webhook llega repetido)
-- Rate-limit en los endpoints públicos
-- Carrito, página de producto, confirmación de orden
-- Panel de órdenes e inventario
-
-## Qué hay que tocar sí o sí
+### Bloque A — la navegación que pidió Agus (no depende de nada)
 
 | # | Trabajo | Tamaño |
 |---|---|---|
-| 1 | Migrar el catálogo a `products` de POV: `price` a numérico, `slug`, `item_type`, `is_active` | 1 día (son 25 filas, se migran con SQL) |
-| 2 | Traer `orders`, `order_items`, `cart_items` y las RPCs | ½ día |
-| 3 | **MercadoPago Argentina**: `currency_id` a `ARS`, cuotas y `payer.identification` (DNI/CUIT) | 1 día ← lo único realmente nuevo |
-| 4 | Provincias argentinas en lugar del ENUM de departamentos uruguayos | ½ día |
-| 5 | Reglas de envío de Matukana (¿envía? ¿sólo retira en Ameghino 653?) | depende de Agus |
-| 6 | Adaptar el front de POV a la identidad de Matukana | 1–2 días |
-| 7 | **Correos de pedido** (no existen en POV) + Resend | 1 día |
+| A1 | `/productos`, `/terapias`, `/experiencias` como rutas, con los textos SEO ya escritos | 1–1,5 días |
+| A2 | Los tres botones arriba + que la home siga funcionando para el que scrollea | ½ día |
+| A3 | Pasar las imágenes a `next/image` y optimizar al subir — **hoy es regla de la casa** (ver abajo) | ½ día |
 
-**Total estimado: 5 a 7 días de trabajo**, sin contar lo que dependa de decisiones de Agus.
+### Bloque B — la tienda (sólo productos)
+
+| # | Trabajo | Tamaño |
+|---|---|---|
+| B1 | `products` al modelo de POV: **`price` de texto a numérico**, `slug`, `is_active` | ½ día (son 10 filas) |
+| B2 | Traer `orders`, `order_items`, `cart_items` y las RPCs de POV | ½ día |
+| B3 | **MercadoPago Argentina**: `currency_id` a `ARS`, cuotas, `payer.identification` (DNI/CUIT) | 1 día ← lo único nuevo de verdad |
+| B4 | Provincias argentinas en lugar del ENUM de departamentos uruguayos | ½ día |
+| B5 | Envío: gratis en Salta / tarifa plana al interior / gratis > $300.000 / retiro | ½ día |
+| B6 | Carrito, checkout y confirmación con la identidad de Matukana | 1,5 días |
+| B7 | **Correos de pedido** + Resend + verificar el dominio | 1 día |
+
+**Bloque A: 2–2,5 días. Bloque B: 5–5,5 días.**
+
+Se pueden hacer en ese orden y entregar el A primero: es lo que Agus va a *ver*, y no depende
+de que confirme nada.
 
 ---
 
-## Lo que NO hay que refactorizar
+## Novedad grande: POV ya no es el mismo motor de septiembre
 
-- **El sitio actual.** Las secciones, el diseño y el admin de contenido se quedan como están.
-  La tienda se suma, no reemplaza.
-- **La autenticación y la seguridad.** Ya están resueltas.
-- **El panel de contenido.** Los gestores de productos/terapias/experiencias siguen sirviendo;
-  lo que se agrega es el campo de precio y el de "se vende / no se vende".
+Entre el 27/09 y hoy, POV Store sumó cosas que antes había que construir desde cero:
+
+| Lo que hay ahora en POV | Qué significa para Matukana |
+|---|---|
+| **Mails transaccionales por Resend** (`src/lib/email/`), sin SDK, fail-open si falta la key | B7 pasa de "construir" a "portar". En septiembre esto no existía |
+| **Página pública de seguimiento de pedidos** | Se puede traer casi gratis |
+| **Integración con MatchBot**: catálogo firmado, checkout desde el bot | El "circuito virtuoso" que buscábamos ya existe en código |
+| Arquitectura de correo probada: **se envía por Resend, se recibe por Spacemail**, sin tocar el MX | Matukana tiene exactamente el mismo esquema (`info@vivematukana.com` en Spacemail) |
+
+⚠ Ojo con el detalle del SPF que dejó documentado POV: **dos registros SPF en el mismo host se
+invalidan entre sí**. Si Resend pidiera uno en la raíz, hay que mergearlo en un único TXT con el
+de Spacemail.
 
 ---
 
-## Preguntas para Agus antes de empezar
+## Reglas de la casa que ahora aplican (y antes no existían)
 
-Estas cambian el trabajo, así que conviene tenerlas respondidas:
+`AGENTS.md` sumó el 31/10 la regla de imágenes, nacida del egress de Killa TV. Toca de lleno a
+este proyecto, que es una galería con subida de fotos por el cliente:
 
-1. **¿Qué se vende online y qué no?** ¿Todas las terapias, o algunas se siguen coordinando sólo
-   por WhatsApp?
-2. **¿Los productos se envían?** Si sí: ¿a todo el país, sólo a Salta, cuánto cobra, desde qué
-   monto es gratis. Si no: sólo retiro en Ameghino 653.
-3. **¿Cobra seña o el total?** En terapias es común cobrar una seña y el resto en el local.
-4. **¿Lleva control de stock de los productos?** ¿O son a pedido?
-5. **Precios reales de cada terapia y experiencia**, que hoy no están en la base.
+1. **Nunca guardar el original que sube el usuario.** Optimizar al subir: lado mayor 1600 px,
+   JPEG q82 (~150 KB). Referencia: `KILLA/killa-web/lib/editorial/image.ts`.
+2. **Nombre con uuid, `upsert: false`, `cacheControl: 31536000`.** Para cambiar una imagen se
+   sube con nombre nuevo; nunca se pisa una URL con caché largo.
+3. **`next/image` en las páginas públicas**, nunca `<img>` apuntando directo a Storage.
+4. **`og:image` ≤ 250 KB**, o WhatsApp la descarta y muestra el ícono del sitio.
+5. **Supabase en Pro antes de entregar** y revisar Usage a la semana de salir.
 
-La 2 y la 5 son las que frenan el arranque.
+Hoy Matukana **incumple 1, 2 y 3**: el `ImageUploader` sube el archivo tal cual y todo el sitio
+usa `<img>`. Por eso A3 no es cosmético.
+
+---
+
+## Lo que falta de Agus
+
+1. **Confirmar que las terapias no se cobran online** (dijo las dos cosas).
+2. **El número de la tarifa plana de envío al interior** — ¿los $30.000 sirven como número fijo?
+3. **Las dos excursiones con precio, horas y cupo fijos** que se ofreció a armar.
+4. Los precios de las terapias, si se van a mostrar (para que la consulta llegue filtrada).
